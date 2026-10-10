@@ -350,3 +350,64 @@ alter table accounts enable row level security;
 alter table invites enable row level security;
 alter table password_resets enable row level security;
 alter table push_subscriptions enable row level security;
+
+-- ============================================================
+-- v5: tareas semanales, por habitación o por habitante
+-- ============================================================
+alter table tasks add column if not exists frequency text not null default 'weekly' check (frequency in ('weekly','monthly'));
+alter table tasks add column if not exists assign_by text not null default 'room' check (assign_by in ('room','person'));
+-- La limpieza del baño rota por persona.
+update tasks set assign_by = 'person' where name ilike '%baño%' and assign_by = 'room';
+
+-- Cada asignación cubre un período (semana de lunes a domingo, o mes) para una habitación o una persona.
+alter table task_assignments add column if not exists period_start date;
+alter table task_assignments add column if not exists period_end date;
+alter table task_assignments add column if not exists member_id uuid references users(id) on delete set null;
+alter table task_assignments alter column room drop not null;
+alter table task_assignments alter column month drop not null;
+update task_assignments
+  set period_start = (month || '-01')::date,
+      period_end = ((month || '-01')::date + interval '1 month - 1 day')::date
+  where period_start is null and month is not null;
+-- Las asignaciones mensuales viejas de tareas que ahora son semanales terminan el domingo anterior a esta semana.
+update task_assignments a
+  set period_end = (date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date - 1)
+  from tasks t
+  where a.task_id = t.id and t.frequency = 'weekly'
+    and a.period_start < date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date
+    and a.period_end >= date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date;
+create unique index if not exists idx_task_assign_period on task_assignments(task_id, period_start);
+create index if not exists idx_task_assign_home_period on task_assignments(home_id, period_start);
+
+-- ============================================================
+-- v6: baños con sus habitantes (la limpieza rota dentro de cada baño)
+-- ============================================================
+create table if not exists bathrooms (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid not null references homes(id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now()
+);
+create table if not exists bathroom_members (
+  bathroom_id uuid not null references bathrooms(id) on delete cascade,
+  member_id uuid not null references users(id) on delete cascade,
+  primary key (bathroom_id, member_id)
+);
+create index if not exists idx_bathrooms_home on bathrooms(home_id);
+-- La tarea de limpieza de un baño se borra junto con el baño.
+alter table tasks add column if not exists bathroom_id uuid references bathrooms(id) on delete cascade;
+
+-- Convierte cada tarea "baño" existente en un baño "Baño" con los habitantes activos de la residencia.
+do $$
+declare t record; b uuid;
+begin
+  for t in select * from tasks where name ilike '%baño%' and bathroom_id is null loop
+    insert into bathrooms (home_id, name) values (t.home_id, 'Baño') returning id into b;
+    insert into bathroom_members (bathroom_id, member_id)
+      select b, id from users where home_id = t.home_id and role = 'resident' and active;
+    update tasks set bathroom_id = b, assign_by = 'person', name = 'Limpiar Baño' where id = t.id;
+  end loop;
+end $$;
+
+alter table bathrooms enable row level security;
+alter table bathroom_members enable row level security;

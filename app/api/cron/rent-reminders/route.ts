@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireDb } from '@/lib/db';
 import { currentDue, syncPayments, todayAR } from '@/lib/rent';
-import { ensureAssignments } from '@/lib/tasks';
+import { ensureCurrent } from '@/lib/tasks';
 import { notify } from '@/lib/notify';
 
-// Corre una vez por día (vercel.json): crea los pagos y las tareas del mes y avisa del vencimiento.
+// Corre una vez por día (vercel.json): crea los pagos del mes, las tareas de la semana o del mes, y avisa del vencimiento.
 export async function GET(req:Request){
   const auth=req.headers.get('authorization');
   if(!process.env.CRON_SECRET || auth!==`Bearer ${process.env.CRON_SECRET}`) return NextResponse.json({error:'Unauthorized'},{status:401});
@@ -13,7 +13,7 @@ export async function GET(req:Request){
     const {data:homes,error:homesError}=await db.from('homes').select('id,rent_due_day'); if(homesError)throw homesError;
     let created=0;
     for(const home of homes||[]){
-      await ensureAssignments(db,home.id,today.y,today.m);
+      await ensureCurrent(db,home.id);
       const dueStr=currentDue(home.rent_due_day); await syncPayments(db,home.id,dueStr);
       const days=home.rent_due_day-today.d;
       if(days<0 || days>3) continue;
