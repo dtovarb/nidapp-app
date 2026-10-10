@@ -47,3 +47,4 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .mobile-nav button{color:var(--ink);border-radius:10px;padding:4px 0}.mobile-nav button.active{background:#eee2ff}.nav-count{display:inline-block;background:#ff8298;border:2px solid var(--line);border-radius:999px;padding:0 6px;font-size:10px}
 .sheet-backdrop{position:fixed;inset:0;z-index:40;background:rgba(32,32,54,.45);display:flex;align-items:flex-end}.sheet{width:100%;max-height:80vh;overflow:auto;background:var(--paper);border-top:3px solid var(--line);border-radius:18px 18px 0 0;padding:16px 16px 28px}
 @media(max-width:850px){.span-5,.span-7{grid-column:1/-1}}
+.quick{font-weight:900}
