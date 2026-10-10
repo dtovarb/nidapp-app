@@ -22,7 +22,7 @@ NIDAPP es una app web mobile-first para administrar una residencia. Está prepar
 ### Variables de entorno nuevas (opcionales)
 | Variable | Para qué |
 |---|---|
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Notificaciones push. Generalas con `npx web-push generate-vapid-keys`. `VAPID_SUBJECT` es `mailto:tu@email.com`. |
+| `VAPID_PRIVATE_KEY` | Notificaciones push. La clave pública ya está en `lib/push-config.ts`; si generás un par nuevo (`npx web-push generate-vapid-keys`), cambiá también la pública ahí o con `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Emails de recuperación de contraseña. `EMAIL_FROM` es, por ejemplo, `NIDAPP <hola@tudominio.com>`. |
 
 Sin estas variables la app funciona igual: solo quedan desactivados los push y la recuperación por email.

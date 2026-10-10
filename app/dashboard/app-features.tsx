@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { SessionUser } from '@/lib/auth';
 import { jsonBody } from './sections';
+import { VAPID_PUBLIC_KEY } from '@/lib/push-config';
 
 type Api=(url:string,options?:RequestInit)=>Promise<any>;
 type Props={api:Api;show:(s:string)=>void;session:SessionUser};
@@ -26,7 +27,7 @@ export function InstallCard({compact=false,onDismiss}:{compact?:boolean;onDismis
 // ---------- Notificaciones push del celular ----------
 const b64ToBytes=(b64:string)=>{const pad='='.repeat((4-b64.length%4)%4);const raw=atob((b64+pad).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(raw,c=>c.charCodeAt(0));};
 export function PushToggle({api,show}:{api:Api;show:(s:string)=>void}){
- const key=process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+ const key=VAPID_PUBLIC_KEY;
  const [state,setState]=useState<'loading'|'unsupported'|'off'|'on'|'denied'>('loading');
  useEffect(()=>{(async()=>{if(!key||!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))return setState('unsupported');if(Notification.permission==='denied')return setState('denied');const reg=await navigator.serviceWorker.ready;setState((await reg.pushManager.getSubscription())?'on':'off')})().catch(()=>setState('unsupported'))},[key]);
  async function enable(){try{const perm=await Notification.requestPermission();if(perm!=='granted'){setState(perm==='denied'?'denied':'off');return show('No se activaron las notificaciones.');}const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(key!)});await api('/api/push',jsonBody('POST',{subscription:sub.toJSON()}));setState('on');show('Notificaciones activadas 🔔')}catch(e){show(errMsg(e))}}

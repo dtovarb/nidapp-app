@@ -1,13 +1,14 @@
 import webpush from 'web-push';
 import type { requireDb } from '@/lib/db';
+import { VAPID_PUBLIC_KEY, VAPID_SUBJECT } from '@/lib/push-config';
 
 type Db = ReturnType<typeof requireDb>;
 type Row = { home_id: string; user_id: string; title: string; message: string; kind?: string };
 
-const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const publicKey = VAPID_PUBLIC_KEY;
 const privateKey = process.env.VAPID_PRIVATE_KEY;
 const pushEnabled = Boolean(publicKey && privateKey);
-if (pushEnabled) webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:soporte@nidapp.app', publicKey!, privateKey!);
+if (pushEnabled) webpush.setVapidDetails(VAPID_SUBJECT, publicKey, privateKey!);
 
 // Guarda las notificaciones internas y, si las claves VAPID están configuradas, las manda
 // como push al celular de cada persona. Un fallo de push nunca rompe la acción principal.
