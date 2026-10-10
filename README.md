@@ -5,7 +5,7 @@ NIDAPP es una app web mobile-first para administrar una residencia. Está prepar
 ## Novedades v2
 
 ### Perfil dueño
-- **Habitaciones:** agregar o quitar habitaciones, definir el cupo de personas y el precio mensual de cada una. Si una habitación es compartida, el precio se divide entre quienes viven ahí. No se puede asignar más gente que el cupo.
+- **Habitaciones:** agregar o quitar habitaciones, definir el cupo de personas y el precio mensual de cada una. El precio es por persona: si una habitación es compartida, cada habitante paga ese monto. No se puede asignar más gente que el cupo.
 - **Servicios y otros cobros:** monto fijo por habitante (luz, gas, internet…) que se suma al alquiler del mes. Se pueden pausar o eliminar.
 - **Alquiler por mes:** cada mes tiene su propio registro. Los meses impagos quedan como deuda vencida en vez de desaparecer.
 - **Tareas del mes:** "Tirar la basura" y "Limpiar el baño" rotan solas cada mes entre las habitaciones ocupadas. El dueño puede reasignar a mano y agregar o quitar tareas.

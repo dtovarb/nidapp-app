@@ -27,15 +27,14 @@ export async function syncPayments(db:Db, homeId:string, due:string){
   ]);
   if(e1||e2||e3||e4) throw (e1||e2||e3||e4);
   const priceByRoom=new Map((rooms||[]).map(r=>[r.number,Number(r.price)]));
-  const occupants=new Map<string,number>();
-  for(const r of residents||[]) if(r.room) occupants.set(r.room,(occupants.get(r.room)||0)+1);
   const detail=(charges||[]).map(c=>({name:c.name,amount:Number(c.amount)}));
   const services=detail.reduce((a,c)=>a+c.amount,0);
   const byResident=new Map((existing||[]).map(p=>[p.resident_id,p]));
   const inserts:any[]=[];
   for(const r of residents||[]){
     const price=r.room?priceByRoom.get(r.room)??0:0;
-    const amount=Math.round((price/(occupants.get(r.room||'')||1))*100)/100;
+    // El precio de la habitación es por persona: cada habitante paga el precio completo, aunque la compartan.
+    const amount=price;
     const row={home_id:homeId,resident_id:r.id,due_date:due,amount,room:r.room,services_amount:services,services_detail:detail};
     const p=byResident.get(r.id);
     if(!p){ inserts.push(row); continue; }
