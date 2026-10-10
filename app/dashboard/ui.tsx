@@ -90,7 +90,8 @@ export default function Dashboard({session}:{session:SessionUser}){
  const due=rentMeta?.due_date;
  const currentPayments=payments.filter(p=>p.due_date===due); const overduePayments=payments.filter(p=>p.due_date!==due);
  const paidCount=currentPayments.filter(p=>p.paid).length; const myUnpaid=payments.filter(p=>!p.paid);
- const badge=unread?`🔔 ${unread} nueva${unread===1?'':'s'}`:isOwner?(overduePayments.length?`⚠️ ${overduePayments.length} pago${overduePayments.length===1?'':'s'} vencido${overduePayments.length===1?'':'s'}`:currentPayments.length-paidCount?`💰 ${currentPayments.length-paidCount} pago${currentPayments.length-paidCount===1?'':'s'} pendiente${currentPayments.length-paidCount===1?'':'s'}`:'✨ Todo al día'):(myUnpaid.some(p=>p.overdue)?'⚠️ Alquiler vencido':myUnpaid.length?'💰 Pago pendiente':'✨ Todo al día');
+ const overdueCount=payments.filter(p=>!p.paid&&p.overdue).length;
+ const badge=unread?`🔔 ${unread} nueva${unread===1?'':'s'}`:isOwner?(overdueCount?`⚠️ ${overdueCount} pago${overdueCount===1?'':'s'} vencido${overdueCount===1?'':'s'}`:currentPayments.length-paidCount?`💰 ${currentPayments.length-paidCount} pago${currentPayments.length-paidCount===1?'':'s'} pendiente${currentPayments.length-paidCount===1?'':'s'}`:'✨ Todo al día'):(myUnpaid.some(p=>p.overdue)?'⚠️ Alquiler vencido':myUnpaid.length?'💰 Pago pendiente':'✨ Todo al día');
  const roomsGrouped=useMemo(()=>rooms.map(r=>({...r,people:users.filter(u=>u.role==='resident'&&u.room===r.number&&u.active)})),[users,rooms]);
  const inactive=users.filter(u=>u.role==='resident'&&!u.active);
  const calendarDays=useMemo(()=>{const y=month.getFullYear(),m=month.getMonth(),first=new Date(y,m,1),start=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate();return Array.from({length:42},(_,i)=>{const d=i-start+1;return d>0&&d<=days?new Date(y,m,d):null})},[month]);

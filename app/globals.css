@@ -50,3 +50,5 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .quick{font-weight:900}
 /* La foto se recorta dentro del marco, sea vertical u horizontal. */
 .avatar{position:relative;overflow:hidden;flex-shrink:0}.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+/* Tabla de pagos: se desplaza de costado en pantallas chicas en vez de aplastarse. */
+.table-wrap .table{min-width:860px}.table td,.table th{white-space:nowrap}.row-actions{flex-wrap:nowrap}
