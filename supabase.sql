@@ -147,6 +147,10 @@ alter table rent_payments add column if not exists room text;
 alter table rent_payments add column if not exists services_amount numeric(12,2) not null default 0;
 alter table rent_payments add column if not exists services_detail jsonb not null default '[]'::jsonb;
 
+-- Pagos editados a mano (no se recalculan) y cobros anulados por el dueño.
+alter table rent_payments add column if not exists manual boolean not null default false;
+alter table rent_payments add column if not exists cancelled boolean not null default false;
+
 -- Tareas mensuales que rotan entre habitaciones.
 create table if not exists tasks (
   id uuid primary key default gen_random_uuid(),

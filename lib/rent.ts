@@ -23,7 +23,7 @@ export async function syncPayments(db:Db, homeId:string, due:string){
     db.from('users').select('id,room').eq('home_id',homeId).eq('role','resident').eq('active',true),
     db.from('rooms').select('number,price').eq('home_id',homeId),
     db.from('extra_charges').select('name,amount').eq('home_id',homeId).eq('active',true).order('created_at'),
-    db.from('rent_payments').select('id,resident_id,amount,services_amount,room,paid').eq('home_id',homeId).eq('due_date',due),
+    db.from('rent_payments').select('id,resident_id,amount,services_amount,room,paid,manual,cancelled').eq('home_id',homeId).eq('due_date',due),
   ]);
   if(e1||e2||e3||e4) throw (e1||e2||e3||e4);
   const priceByRoom=new Map((rooms||[]).map(r=>[r.number,Number(r.price)]));
@@ -39,7 +39,8 @@ export async function syncPayments(db:Db, homeId:string, due:string){
     const row={home_id:homeId,resident_id:r.id,due_date:due,amount,room:r.room,services_amount:services,services_detail:detail};
     const p=byResident.get(r.id);
     if(!p){ inserts.push(row); continue; }
-    if(!p.paid&&(Number(p.amount)!==amount||Number(p.services_amount)!==services||p.room!==r.room)){
+    // Los pagos editados a mano o anulados por el dueño no se recalculan.
+    if(!p.paid&&!p.manual&&!p.cancelled&&(Number(p.amount)!==amount||Number(p.services_amount)!==services||p.room!==r.room)){
       const {error}=await db.from('rent_payments').update({amount,room:r.room,services_amount:services,services_detail:detail}).eq('id',p.id);
       if(error) throw error;
     }

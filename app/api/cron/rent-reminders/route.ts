@@ -16,7 +16,7 @@ export async function GET(req:Request){
       const dueStr=currentDue(home.rent_due_day); await syncPayments(db,home.id,dueStr);
       const days=home.rent_due_day-today.d;
       if(days<0 || days>3) continue;
-      const {data:payments,error}=await db.from('rent_payments').select('id,resident_id,amount,services_amount').eq('home_id',home.id).eq('due_date',dueStr).eq('paid',false);
+      const {data:payments,error}=await db.from('rent_payments').select('id,resident_id,amount,services_amount').eq('home_id',home.id).eq('due_date',dueStr).eq('paid',false).eq('cancelled',false);
       if(error)throw error;
       const [y,m,d]=dueStr.split('-');
       for(const p of payments||[]){
