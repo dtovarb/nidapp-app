@@ -2,7 +2,37 @@
 
 NIDAPP es una app web mobile-first para administrar una residencia. Está preparada para Next.js + Supabase + Vercel.
 
-## Cambios incluidos en esta versión
+## Novedades v2
+
+### Perfil dueño
+- **Habitaciones:** agregar o quitar habitaciones, definir el cupo de personas y el precio mensual de cada una. Si una habitación es compartida, el precio se divide entre quienes viven ahí. No se puede asignar más gente que el cupo.
+- **Servicios y otros cobros:** monto fijo por habitante (luz, gas, internet…) que se suma al alquiler del mes. Se pueden pausar o eliminar.
+- **Alquiler por mes:** cada mes tiene su propio registro. Los meses impagos quedan como deuda vencida en vez de desaparecer.
+- **Tareas del mes:** "Tirar la basura" y "Limpiar el baño" rotan solas cada mes entre las habitaciones ocupadas. El dueño puede reasignar a mano y agregar o quitar tareas.
+- **Gastos:** lista mensual de compras y arreglos (jabón, escoba, reparaciones…), con categoría, cantidad, monto y total del mes.
+- **Habitantes:** reactivar habitantes desactivados y resetear contraseñas.
+
+### Perfil habitante
+- **Invitados:** avisar quién viene, qué día y en qué horario, con una imagen opcional que **solo ve el dueño**.
+- **Tareas:** ver la tarea de su habitación y marcarla como hecha.
+- **Alquiler:** detalle de alquiler + servicios, y deudas anteriores.
+- **Perfil:** cambiar la contraseña. La habitación ahora la asigna solo el dueño.
+
+### Ambos perfiles
+- Cada aviso nuevo llega como **notificación** a todos los de la residencia.
+- Navegación completa en celular (botón **Más**) y una URL por sección (`/dashboard?s=alquiler`), así el botón "atrás" funciona.
+- El calendario muestra también visitas y el vencimiento del alquiler.
+- Lavarropas: no permite reservas superpuestas y se pueden cancelar.
+
+### Seguridad
+- Se eliminó el registro público (`/register`): los habitantes los crea el dueño.
+- La sesión se valida contra la base en cada pedido: desactivar a alguien lo saca de la app al instante.
+- La app no arranca en producción sin `AUTH_SECRET`.
+- Límite de 5 intentos de login fallidos cada 15 minutos por usuario.
+- RLS activado en todas las tablas (bloquea el acceso directo con la clave `anon`).
+- Se validan las rutas de archivos subidos y no se muestran errores internos de la base.
+
+## Versión anterior
 
 ### Perfil dueño
 - Avisos: modificar título, descripción, categoría, prioridad y estado.
@@ -37,7 +67,9 @@ NIDAPP es una app web mobile-first para administrar una residencia. Está prepar
 
 ## Base de datos
 
-El archivo `supabase.sql` funciona como esquema inicial y migración. Si ya ejecutaste la versión anterior, podés volver a ejecutar el archivo: agrega las columnas nuevas que faltan y crea el bucket privado para fotos/comprobantes.
+El archivo `supabase.sql` funciona como esquema inicial y migración. Si ya ejecutaste la versión anterior, volvé a ejecutar el archivo completo en **Supabase → SQL Editor**: crea las tablas nuevas (habitaciones, servicios, tareas, invitados, gastos), carga las habitaciones 1 a 6 con precio $60.000 y cupo 1, las tareas "Tirar la basura" y "Limpiar el baño", y activa RLS. Es seguro ejecutarlo más de una vez.
+
+**Ejecutá el SQL antes de desplegar esta versión**, porque el código nuevo usa esas tablas.
 
 Importante: el bucket `nidapp-files` es privado. Los archivos se manejan desde el servidor con la `SUPABASE_SERVICE_ROLE_KEY`.
 
@@ -58,14 +90,14 @@ En Vercel cargá exactamente las mismas variables en **Settings → Environment 
 
 ## Usuarios
 
-La creación de habitantes desde el panel del dueño es la forma recomendada de agregar usuarios a la residencia.
+Los habitantes se crean desde el panel del dueño (**Habitantes → Crear habitante**), con una contraseña inicial de al menos 8 caracteres que después cada uno puede cambiar en **Mi perfil**.
 
 Los datos demo del SQL son:
 
 - Dueño: `dueno` / `demo1234`
 - Habitante: `sofi` / `demo1234`
 
-Se recomienda cambiar las contraseñas demo después de comprobar que todo funciona.
+**Cambiá estas contraseñas** (en Mi perfil) antes de cargar datos reales.
 
 ## Ejecutar
 
