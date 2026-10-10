@@ -28,7 +28,7 @@ export async function PATCH(req:Request){try{const {s,db,homeId}=await homeConte
     const {start,end}=periodOf(task,String(b.period_start||''));if(start!==b.period_start)throw new HttpError(400,'Período inválido.');
     if(end<periodOf(task,todayAR().iso).start)throw new HttpError(400,'No se pueden cambiar semanas que ya pasaron.');
     let room:string|null=null,member_id:string|null=null;
-    if(task.assign_by==='person'){const {data:m}=await db.from('users').select('id,room').eq('id',b.member_id).eq('home_id',homeId).eq('role','resident').eq('active',true).maybeSingle();if(!m)throw new HttpError(400,'Elegí un habitante.');member_id=m.id;room=m.room;}
+    if(task.assign_by==='person'){const {data:m}=await db.from('users').select('id,room').eq('id',b.member_id).eq('home_id',homeId).eq('role','resident').eq('active',true).maybeSingle();if(!m)throw new HttpError(400,'Elegí un habitante.');if(task.bathroom_id){const {data:inBath}=await db.from('bathroom_members').select('member_id').eq('bathroom_id',task.bathroom_id).eq('member_id',m.id).maybeSingle();if(!inBath)throw new HttpError(400,'Esa persona no usa este baño. Agregala al baño primero.');}member_id=m.id;room=m.room;}
     else{const {data:r}=await db.from('rooms').select('number').eq('home_id',homeId).eq('number',String(b.room||'')).maybeSingle();if(!r)throw new HttpError(400,'Esa habitación no existe.');room=r.number;}
     const {data,error}=await db.from('task_assignments').upsert({home_id:homeId,task_id:task.id,period_start:start,period_end:end,room,member_id,done:false,done_at:null},{onConflict:'task_id,period_start'}).select().single();if(error)throw error;
     await notifyAssignee(db,homeId,task,{room,member_id,start,end});
@@ -36,7 +36,7 @@ export async function PATCH(req:Request){try{const {s,db,homeId}=await homeConte
   }
   if(b.action==='config'){
     const changes:Partial<Task>={};if(b.name!==undefined){const n=String(b.name).trim();if(!n)throw new HttpError(400,'El nombre no puede quedar vacío.');changes.name=n;}
-    if(FREQ.includes(b.frequency))changes.frequency=b.frequency;if(BY.includes(b.assign_by))changes.assign_by=b.assign_by;
+    if(FREQ.includes(b.frequency))changes.frequency=b.frequency;if(BY.includes(b.assign_by)&&!task.bathroom_id)changes.assign_by=b.assign_by;
     const {error}=await db.from('tasks').update(changes).eq('id',task.id);if(error)throw error;
     // Si cambió cómo rota, se rehacen las asignaciones pendientes desde el período actual.
     if((changes.frequency&&changes.frequency!==task.frequency)||(changes.assign_by&&changes.assign_by!==task.assign_by)){

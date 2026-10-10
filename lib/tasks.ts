@@ -3,7 +3,7 @@ import { todayAR } from '@/lib/rent';
 import { notify } from '@/lib/notify';
 
 type Db = ReturnType<typeof requireDb>;
-export type Task = { id: string; name: string; position: number; frequency: 'weekly'|'monthly'; assign_by: 'room'|'person' };
+export type Task = { id: string; name: string; position: number; frequency: 'weekly'|'monthly'; assign_by: 'room'|'person'; bathroom_id: string|null };
 export type Candidate = { room: string|null; member_id: string|null };
 export type Period = { id?: string; task_id: string; start: string; end: string; room: string|null; member_id: string|null; done: boolean; done_at: string|null; preview: boolean };
 
@@ -35,20 +35,28 @@ export async function loadCandidates(db: Db, homeId: string) {
   if (error) throw error;
   const people = (data || []).filter(p => p.room).sort((a, b) => byNumber(a.room!, b.room!) || a.created_at.localeCompare(b.created_at));
   const rooms = [...new Set(people.map(p => p.room as string))].sort(byNumber);
-  return { people, rooms };
+  // Quiénes usan cada baño: la limpieza de un baño rota solo entre ellos.
+  const { data: baths, error: bErr } = await db.from('bathrooms').select('id,name,bathroom_members(member_id)').eq('home_id', homeId).order('created_at');
+  if (bErr) throw bErr;
+  const bathrooms = (baths || []).map((b: any) => ({ id: b.id as string, name: b.name as string, member_ids: (b.bathroom_members || []).map((m: any) => m.member_id as string) }));
+  return { people, rooms, bathrooms };
 }
 
 // Rotación: cada período le toca al siguiente de la lista; cada tarea arranca desplazada
 // para que no les toque todo a los mismos.
-export function rotate(task: Task, taskIndex: number, start: string, c: { people: { id: string; room: string|null }[]; rooms: string[] }): Candidate {
+export function rotate(task: Task, taskIndex: number, start: string, c: { people: { id: string; room: string|null }[]; rooms: string[]; bathrooms?: { id: string; member_ids: string[] }[] }): Candidate {
   const i = taskIndex + periodIndex(task, start);
-  if (task.assign_by === 'person') { if (!c.people.length) return { room: null, member_id: null }; const p = c.people[i % c.people.length]; return { room: p.room, member_id: p.id }; }
+  if (task.assign_by === 'person') {
+    const pool = task.bathroom_id ? c.people.filter(p => c.bathrooms?.find(b => b.id === task.bathroom_id)?.member_ids.includes(p.id)) : c.people;
+    if (!pool.length) return { room: null, member_id: null };
+    const p = pool[(task.bathroom_id ? periodIndex(task, start) : i) % pool.length]; return { room: p.room, member_id: p.id };
+  }
   if (!c.rooms.length) return { room: null, member_id: null };
   return { room: c.rooms[i % c.rooms.length], member_id: null };
 }
 
 export async function loadTasks(db: Db, homeId: string) {
-  const { data, error } = await db.from('tasks').select('id,name,position,frequency,assign_by').eq('home_id', homeId).order('position').order('created_at');
+  const { data, error } = await db.from('tasks').select('id,name,position,frequency,assign_by,bathroom_id').eq('home_id', homeId).order('position').order('created_at');
   if (error) throw error;
   return (data || []) as Task[];
 }
@@ -108,5 +116,5 @@ export async function monthView(db: Db, homeId: string, month: string) {
     }
   });
   periods.sort((a, b) => a.start.localeCompare(b.start));
-  return { month, from, to, today, tasks, people: cands.people.map(p => ({ id: p.id, name: p.name, room: p.room })), rooms: cands.rooms, periods };
+  return { month, from, to, today, tasks, people: cands.people.map(p => ({ id: p.id, name: p.name, room: p.room })), rooms: cands.rooms, bathrooms: cands.bathrooms, periods };
 }

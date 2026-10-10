@@ -378,3 +378,36 @@ update task_assignments a
     and a.period_end >= date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date;
 create unique index if not exists idx_task_assign_period on task_assignments(task_id, period_start);
 create index if not exists idx_task_assign_home_period on task_assignments(home_id, period_start);
+
+-- ============================================================
+-- v6: baños con sus habitantes (la limpieza rota dentro de cada baño)
+-- ============================================================
+create table if not exists bathrooms (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid not null references homes(id) on delete cascade,
+  name text not null,
+  created_at timestamptz not null default now()
+);
+create table if not exists bathroom_members (
+  bathroom_id uuid not null references bathrooms(id) on delete cascade,
+  member_id uuid not null references users(id) on delete cascade,
+  primary key (bathroom_id, member_id)
+);
+create index if not exists idx_bathrooms_home on bathrooms(home_id);
+-- La tarea de limpieza de un baño se borra junto con el baño.
+alter table tasks add column if not exists bathroom_id uuid references bathrooms(id) on delete cascade;
+
+-- Convierte cada tarea "baño" existente en un baño "Baño" con los habitantes activos de la residencia.
+do $$
+declare t record; b uuid;
+begin
+  for t in select * from tasks where name ilike '%baño%' and bathroom_id is null loop
+    insert into bathrooms (home_id, name) values (t.home_id, 'Baño') returning id into b;
+    insert into bathroom_members (bathroom_id, member_id)
+      select b, id from users where home_id = t.home_id and role = 'resident' and active;
+    update tasks set bathroom_id = b, assign_by = 'person', name = 'Limpiar Baño' where id = t.id;
+  end loop;
+end $$;
+
+alter table bathrooms enable row level security;
+alter table bathroom_members enable row level security;
