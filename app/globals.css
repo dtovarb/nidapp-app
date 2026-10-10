@@ -101,3 +101,16 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .legal{max-width:760px;margin:0 auto;padding:24px 16px 60px}.legal h1{font-size:20px;margin:12px 0 4px}.legal h2{font-size:16px;margin:20px 0 6px}.legal p,.legal li{line-height:1.55}.legal a{color:#7655b6;text-decoration:underline}
 @media(max-width:850px){.home-switch{margin-right:6px}.home-btn{max-width:150px}}
 @media(max-width:520px){.invite-row{grid-template-columns:1fr}.home-btn{max-width:120px;padding:6px 8px}.brand-title{font-size:12px}}
+
+/* v5: calendario diario de tareas */
+.cal-month{padding:10px 4px;text-transform:capitalize;font-size:13px;white-space:nowrap}
+.task-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.task-day{min-height:96px}.task-day.outside{opacity:.45}.task-day.today{border-width:3px;border-color:#9b5de5;background:#f6f0ff}
+.task-chip{display:flex;align-items:center;gap:3px;margin-top:4px;border:2px solid var(--line);border-radius:6px;padding:2px 4px;font-size:10px;font-weight:900;background:#fff;overflow:hidden;white-space:nowrap}
+.task-chip span{overflow:hidden;text-overflow:ellipsis}.task-chip.mine{background:#ffd34e}.task-chip.done{background:#ddf6d7}.task-chip.mine.done{background:#bfeab5}
+.week-row{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:start;border:2px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#fff}
+.week-row.now{background:#f6f0ff;border-width:3px}.week-row.past{opacity:.6}
+.week-dates{display:grid;gap:4px}.week-dates .tag{margin-top:0;width:max-content}
+.week-items{display:grid;gap:6px}.week-item{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;font-weight:800}
+.task-config-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:650px){.task-day{min-height:70px;padding:4px}.task-chip{font-size:8px;padding:1px 2px;gap:1px}.task-chip span{max-width:34px}.week-row{grid-template-columns:1fr}.task-config .button{padding:8px 10px}}

@@ -350,3 +350,31 @@ alter table accounts enable row level security;
 alter table invites enable row level security;
 alter table password_resets enable row level security;
 alter table push_subscriptions enable row level security;
+
+-- ============================================================
+-- v5: tareas semanales, por habitación o por habitante
+-- ============================================================
+alter table tasks add column if not exists frequency text not null default 'weekly' check (frequency in ('weekly','monthly'));
+alter table tasks add column if not exists assign_by text not null default 'room' check (assign_by in ('room','person'));
+-- La limpieza del baño rota por persona.
+update tasks set assign_by = 'person' where name ilike '%baño%' and assign_by = 'room';
+
+-- Cada asignación cubre un período (semana de lunes a domingo, o mes) para una habitación o una persona.
+alter table task_assignments add column if not exists period_start date;
+alter table task_assignments add column if not exists period_end date;
+alter table task_assignments add column if not exists member_id uuid references users(id) on delete set null;
+alter table task_assignments alter column room drop not null;
+alter table task_assignments alter column month drop not null;
+update task_assignments
+  set period_start = (month || '-01')::date,
+      period_end = ((month || '-01')::date + interval '1 month - 1 day')::date
+  where period_start is null and month is not null;
+-- Las asignaciones mensuales viejas de tareas que ahora son semanales terminan el domingo anterior a esta semana.
+update task_assignments a
+  set period_end = (date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date - 1)
+  from tasks t
+  where a.task_id = t.id and t.frequency = 'weekly'
+    and a.period_start < date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date
+    and a.period_end >= date_trunc('week', (now() at time zone 'America/Argentina/Buenos_Aires'))::date;
+create unique index if not exists idx_task_assign_period on task_assignments(task_id, period_start);
+create index if not exists idx_task_assign_home_period on task_assignments(home_id, period_start);

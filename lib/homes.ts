@@ -14,7 +14,7 @@ export const DEFAULT_RULES = [
   ['🤝','Respeto','Tratemos a todos con respeto. Los problemas importantes deben comunicarse mediante avisos.'],
   ['🚪','Espacios privados','Respetá habitaciones y pertenencias ajenas. No ingreses a un cuarto sin permiso.'],
   ['🙋','Invitados','Avisá en la sección Invitados quién viene y en qué horario.'],
-  ['🗑️','Tareas del mes','Cada mes a cada habitación le toca una tarea. Revisala en Tareas y marcala cuando la hagas.'],
+  ['🗑️','Tareas','Las tareas rotan cada semana. Revisá en Tareas cuándo te toca y marcala como terminada cuando la hagas.'],
 ];
 
 export const isEmail = (v: unknown) => typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
