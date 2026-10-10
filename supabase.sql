@@ -233,3 +233,39 @@ alter table task_assignments enable row level security;
 alter table guests enable row level security;
 alter table expenses enable row level security;
 alter table login_attempts enable row level security;
+
+-- ============================================================
+-- v3: fotos en avisos, normas editables, aviso de pago
+-- ============================================================
+
+-- Foto opcional en los avisos (la ven todos los de la residencia).
+alter table notices add column if not exists photo_path text;
+
+-- El habitante avisa que pagó; el dueño después confirma el pago.
+alter table rent_payments add column if not exists reported_at timestamptz;
+
+-- Normas de convivencia editables por el dueño.
+create table if not exists rules (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid not null references homes(id) on delete cascade,
+  icon text not null default '📌',
+  title text not null,
+  body text not null,
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_rules_home on rules(home_id, position);
+insert into rules (home_id, icon, title, body, position)
+select h.id, r.icon, r.title, r.body, r.pos from homes h
+cross join (values
+  ('🧹','Limpieza','Dejá los espacios comunes limpios después de usarlos. Respetá los turnos y avisá si algo se rompe.',0),
+  ('🔇','Ruido','Evitemos ruidos fuertes durante la noche. Si necesitás hacer una reunión, avisá con anticipación.',1),
+  ('🧺','Lavarropas','Respetá la reserva, retirá la ropa al terminar y marcá la reserva como finalizada.',2),
+  ('🍽️','Cocina','Lavá tus utensilios y no ocupes indefinidamente las superficies comunes.',3),
+  ('🤝','Respeto','Tratemos a todos con respeto. Los problemas importantes deben comunicarse mediante avisos.',4),
+  ('🚪','Espacios privados','Respetá habitaciones y pertenencias ajenas. No ingreses a un cuarto sin permiso.',5),
+  ('🙋','Invitados','Avisá en la sección Invitados quién viene y en qué horario.',6),
+  ('🗑️','Tareas del mes','Cada mes a cada habitación le toca una tarea. Revisala en Tareas y marcala cuando la hagas.',7)
+) as r(icon,title,body,pos)
+where not exists (select 1 from rules x where x.home_id = h.id);
+alter table rules enable row level security;

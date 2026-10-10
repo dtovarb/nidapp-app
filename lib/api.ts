@@ -23,7 +23,7 @@ export function fail(e:unknown){
 export const json=NextResponse.json;
 
 // Valida que una ruta de archivo subida pertenezca al usuario y al tipo esperado.
-export function ownsPath(path:unknown, kind:'photo'|'proof'|'guest', userId:string){
+export function ownsPath(path:unknown, kind:'photo'|'proof'|'guest'|'notice', userId:string){
   return typeof path==='string' && path.startsWith(`${kind}/${userId}/`) && !path.includes('..');
 }
 
