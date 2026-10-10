@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import { getSession, type SessionUser } from '@/lib/auth';
+import { getSession, isManager, type SessionUser } from '@/lib/auth';
+import { notify } from '@/lib/notify';
 import { requireDb } from '@/lib/db';
 
 export class HttpError extends Error { constructor(public status:number, message:string){ super(message); } }
 
-// Sesión + base + residencia. Con ownerOnly corta con 403 si no es el dueño.
+// Sesión + base + residencia. Con ownerOnly corta con 403 si no es dueño ni encargado.
 export async function homeContext(opts:{ownerOnly?:boolean; ownerMessage?:string}={}){
   const s=await getSession(); if(!s) throw new HttpError(401,'No autenticado');
-  if(opts.ownerOnly&&s.role!=='owner') throw new HttpError(403,opts.ownerMessage||'Solo el dueño puede hacer esto.');
+  if(opts.ownerOnly&&!isManager(s.role)) throw new HttpError(403,opts.ownerMessage||'Solo el dueño puede hacer esto.');
   if(!s.home_id) throw new HttpError(400,'No se encontró la residencia.');
   return { s: s as SessionUser & {home_id:string}, db: requireDb(), homeId: s.home_id };
 }
@@ -24,6 +25,7 @@ export const json=NextResponse.json;
 
 // Valida que una ruta de archivo subida pertenezca al usuario y al tipo esperado.
 export function ownsPath(path:unknown, kind:'photo'|'proof'|'guest'|'notice', userId:string){
+  // userId es el id de la membresía (users.id) que subió el archivo.
   return typeof path==='string' && path.startsWith(`${kind}/${userId}/`) && !path.includes('..');
 }
 
@@ -34,9 +36,7 @@ export async function signedUrl(db:ReturnType<typeof requireDb>, path:string|nul
 }
 
 export async function notifyUsers(db:ReturnType<typeof requireDb>, homeId:string, userIds:string[], title:string, message:string, kind='general'){
-  if(!userIds.length) return;
-  const {error}=await db.from('notifications').insert(userIds.map(user_id=>({home_id:homeId,user_id,title,message,kind})));
-  if(error) throw error;
+  await notify(db,userIds.map(user_id=>({home_id:homeId,user_id,title,message,kind})));
 }
 
 export function isTime(v:unknown){ return typeof v==='string' && /^\d{2}:\d{2}(:\d{2})?$/.test(v); }

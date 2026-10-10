@@ -1,0 +1,10 @@
+import { randomInt } from 'crypto';
+import { homeContext, fail, json, HttpError } from '@/lib/api';
+
+const owner={ownerOnly:true,ownerMessage:'Solo el dueño o un encargado puede invitar.'};
+const ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const newCode=()=>'NID-'+Array.from({length:6},()=>ALPHABET[randomInt(ALPHABET.length)]).join('');
+
+export async function GET(){try{const {db,homeId}=await homeContext(owner);const {data,error}=await db.from('invites').select('id,code,role,room,uses,max_uses,expires_at,created_at').eq('home_id',homeId).eq('active',true).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false});if(error)throw error;return json({items:data||[]});}catch(e){return fail(e)}}
+export async function POST(req:Request){try{const {s,db,homeId}=await homeContext(owner);const b=await req.json();const role=b.role==='admin'?'admin':'resident';if(role==='admin'&&s.role!=='owner')throw new HttpError(403,'Solo el dueño puede invitar encargados.');let room:string|null=null;if(role==='resident'&&b.room){const {data:r}=await db.from('rooms').select('number').eq('home_id',homeId).eq('number',String(b.room)).maybeSingle();if(!r)throw new HttpError(400,'Esa habitación no existe.');room=r.number;}const max_uses=Math.max(1,Math.min(50,Math.floor(Number(b.max_uses)||1)));const days=Math.max(1,Math.min(60,Math.floor(Number(b.days)||14)));for(let i=0;i<5;i++){const {data,error}=await db.from('invites').insert({home_id:homeId,code:newCode(),role,room,max_uses,created_by:s.id,expires_at:new Date(Date.now()+days*864e5).toISOString()}).select('id,code,role,room,uses,max_uses,expires_at').single();if(!error)return json({item:data});if(error.code!=='23505')throw error;}throw new HttpError(500,'No se pudo generar el código.');}catch(e){return fail(e)}}
+export async function DELETE(req:Request){try{const {db,homeId}=await homeContext(owner);const b=await req.json();const {error}=await db.from('invites').update({active:false}).eq('id',b.id).eq('home_id',homeId);if(error)throw error;return json({ok:true});}catch(e){return fail(e)}}

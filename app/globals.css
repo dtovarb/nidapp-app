@@ -80,3 +80,24 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .rule-row{grid-template-columns:90px 1fr}
 @media(max-width:520px){.rule-row{grid-template-columns:80px 1fr}.task-calendar{grid-template-columns:1fr 1fr}}
 .room-chip{white-space:nowrap;flex-shrink:0}.task-month-row>span:first-child{min-width:0}
+
+/* v4: residencias, registro, legales */
+.home-switch{position:relative;margin-left:auto;margin-right:10px}
+.home-btn{border:3px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font:inherit;font-weight:900;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;max-width:220px}
+.home-btn-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:60;background:var(--paper);border:3px solid var(--line);border-radius:12px;box-shadow:5px 5px 0 rgba(40,40,70,.15);min-width:240px;padding:6px;display:grid;gap:4px}
+.home-menu button{border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:8px;font:inherit;cursor:pointer;display:grid;gap:2px;color:var(--ink)}
+.home-menu button:hover,.home-menu button.current{background:#eee2ff}
+.install-card{margin-bottom:14px}
+.invite-row{grid-template-columns:repeat(3,1fr)}
+.invite-code{font-family:'Press Start 2P',monospace;font-size:12px;letter-spacing:1px}
+.danger-zone{margin-top:14px;border-top:2px dashed #e7a5a5;padding-top:12px}
+.mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.mode-tabs button{border:3px solid var(--line);background:#fff;border-radius:10px;padding:10px 6px;font:inherit;font-weight:900;font-size:12px;cursor:pointer}
+.mode-tabs button.active{background:#eadfff}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:12px;font-weight:700}.check a{color:#7655b6;text-decoration:underline}
+.auth-legal{text-align:center;font-size:11px;margin-top:14px;color:#77738a}.auth-legal a{text-decoration:underline}
+.auth-switch a{color:#7655b6;text-decoration:underline}
+.legal{max-width:760px;margin:0 auto;padding:24px 16px 60px}.legal h1{font-size:20px;margin:12px 0 4px}.legal h2{font-size:16px;margin:20px 0 6px}.legal p,.legal li{line-height:1.55}.legal a{color:#7655b6;text-decoration:underline}
+@media(max-width:850px){.home-switch{margin-right:6px}.home-btn{max-width:150px}}
+@media(max-width:520px){.invite-row{grid-template-columns:1fr}.home-btn{max-width:120px;padding:6px 8px}.brand-title{font-size:12px}}

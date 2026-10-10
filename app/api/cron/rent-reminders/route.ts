@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireDb } from '@/lib/db';
 import { currentDue, syncPayments, todayAR } from '@/lib/rent';
 import { ensureAssignments } from '@/lib/tasks';
+import { notify } from '@/lib/notify';
 
 // Corre una vez por día (vercel.json): crea los pagos y las tareas del mes y avisa del vencimiento.
 export async function GET(req:Request){
@@ -24,8 +25,8 @@ export async function GET(req:Request){
         if(findError)throw findError;
         if(existing?.length) continue;
         const total=Number(p.amount)+Number(p.services_amount);
-        const {error:insertError}=await db.from('notifications').insert({home_id:home.id,user_id:p.resident_id,title:'Recordatorio de alquiler',message:`Recordatorio: tu alquiler vence el ${d}/${m}/${y}. Total: $${total.toLocaleString('es-AR')}.`,kind:'rent'});
-        if(insertError)throw insertError; created++;
+        await notify(db,[{home_id:home.id,user_id:p.resident_id,title:'Recordatorio de alquiler',message:`Recordatorio: tu alquiler vence el ${d}/${m}/${y}. Total: $${total.toLocaleString('es-AR')}.`,kind:'rent'}]);
+        created++;
       }
     }
     return NextResponse.json({ok:true,created});

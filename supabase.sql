@@ -269,3 +269,84 @@ cross join (values
 ) as r(icon,title,body,pos)
 where not exists (select 1 from rules x where x.home_id = h.id);
 alter table rules enable row level security;
+
+-- ============================================================
+-- v4: cuentas por persona, varias residencias, invitaciones, push
+-- ============================================================
+
+-- Una cuenta por persona (email + contraseña). Cada fila de "users" pasa a ser
+-- la membresía de esa cuenta en una residencia (rol, habitación, datos de contacto).
+create table if not exists accounts (
+  id uuid primary key default gen_random_uuid(),
+  email text,
+  password_hash text not null,
+  name text not null,
+  last_member_id uuid,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists idx_accounts_email on accounts(lower(email)) where email is not null;
+
+alter table users add column if not exists account_id uuid references accounts(id) on delete cascade;
+alter table users alter column password_hash drop not null;
+create unique index if not exists idx_users_account_home on users(account_id, home_id) where account_id is not null;
+create index if not exists idx_users_account on users(account_id);
+
+-- Encargados: mismos permisos que el dueño dentro de la residencia.
+alter table users drop constraint if exists users_role_check;
+alter table users add constraint users_role_check check (role in ('owner','admin','resident'));
+
+-- Migración: crea una cuenta por cada usuario existente (si dos comparten email, solo la primera lo conserva).
+do $$
+declare r record; acc uuid; em text;
+begin
+  for r in select * from users where account_id is null order by created_at loop
+    em := nullif(lower(trim(coalesce(r.email,''))),'');
+    if em is not null and exists (select 1 from accounts where lower(email) = em) then em := null; end if;
+    insert into accounts (email, password_hash, name) values (em, coalesce(r.password_hash,''), r.name) returning id into acc;
+    update users set account_id = acc where id = r.id;
+  end loop;
+end $$;
+
+alter table homes add column if not exists created_by uuid references accounts(id) on delete set null;
+
+-- Invitaciones por código o link.
+create table if not exists invites (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid not null references homes(id) on delete cascade,
+  code text not null unique,
+  role text not null default 'resident' check (role in ('resident','admin')),
+  room text,
+  created_by uuid references users(id) on delete set null,
+  uses integer not null default 0,
+  max_uses integer not null default 1 check (max_uses between 1 and 50),
+  expires_at timestamptz not null default now() + interval '14 days',
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_invites_home on invites(home_id);
+
+-- Recuperación de contraseña por email.
+create table if not exists password_resets (
+  id uuid primary key default gen_random_uuid(),
+  account_id uuid not null references accounts(id) on delete cascade,
+  token_hash text not null unique,
+  expires_at timestamptz not null,
+  used boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+-- Notificaciones push del celular (una suscripción por dispositivo).
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  account_id uuid not null references accounts(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_push_account on push_subscriptions(account_id);
+
+alter table accounts enable row level security;
+alter table invites enable row level security;
+alter table password_resets enable row level security;
+alter table push_subscriptions enable row level security;
