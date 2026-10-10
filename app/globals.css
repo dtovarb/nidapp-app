@@ -52,3 +52,17 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .avatar{position:relative;overflow:hidden;flex-shrink:0}.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 /* Tabla de pagos: se desplaza de costado en pantallas chicas en vez de aplastarse. */
 .table-wrap .table{min-width:860px}.table td,.table th{white-space:nowrap}.row-actions{flex-wrap:nowrap}
+/* En celular las tablas se muestran como tarjetas: sin barra de desplazamiento lateral. */
+@media(max-width:700px){
+.table-wrap{overflow:visible}
+.table-wrap .table{min-width:0;border-spacing:0}
+.table-wrap .table thead{display:none}
+.table-wrap .table,.table-wrap .table tbody{display:block}
+.table-wrap .table tr{display:block;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;box-shadow:3px 3px 0 rgba(40,40,70,.08)}
+.table-wrap .table tr.row-overdue{background:#ffe4e4}
+.table-wrap .table td,.table-wrap .table td:first-child,.table-wrap .table td:last-child,.row-overdue td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;border-radius:0;padding:5px 0;background:transparent;white-space:normal;text-align:right}
+.table-wrap .table td[data-label]::before{content:attr(data-label);font-size:10px;font-weight:900;color:#736e82;text-align:left}
+.table-wrap .table td.cell-head{border-bottom:2px dashed #d8d3e0;padding-bottom:8px;margin-bottom:4px;justify-content:flex-start;text-align:left;font-size:14px}
+.table-wrap .table td.cell-actions{display:block;padding-top:8px}
+.table-wrap .row-actions{flex-wrap:wrap}.table-wrap .row-actions .button:first-child{flex:1}
+}
