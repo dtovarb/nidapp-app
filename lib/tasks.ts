@@ -1,5 +1,6 @@
 import type { requireDb } from '@/lib/db';
 import { monthKey } from '@/lib/rent';
+import { notify } from '@/lib/notify';
 
 type Db = ReturnType<typeof requireDb>;
 const byNumber=(a:string,b:string)=>a.localeCompare(b,'es',{numeric:true});
@@ -24,5 +25,5 @@ export async function ensureAssignments(db:Db, homeId:string, y:number, m:number
   if(error) throw error;
   const names=new Map((tasks||[]).map(t=>[t.id,t.name]));
   const notes=(inserted||[]).flatMap(a=>(residents||[]).filter(r=>r.room===a.room).map(r=>({home_id:homeId,user_id:r.id,title:'Tarea del mes',message:`Este mes a tu habitación le toca: ${names.get(a.task_id)}.`,kind:'task'})));
-  if(notes.length){ const {error:ne}=await db.from('notifications').insert(notes); if(ne) throw ne; }
+  await notify(db,notes);
 }

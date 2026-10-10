@@ -2,6 +2,31 @@
 
 NIDAPP es una app web mobile-first para administrar una residencia. Está preparada para Next.js + Supabase + Vercel.
 
+## Novedades v4: varias residencias y app instalable
+
+### Cuentas y residencias
+- **Una cuenta por persona** (email + contraseña). Las cuentas creadas antes pueden seguir entrando con su usuario.
+- **Registro de dueños** en `/crear-cuenta`: el dueño crea su cuenta y su primera residencia (habitaciones, tareas y normas base).
+- **Varias residencias por cuenta:** selector arriba a la derecha y sección **Mis residencias** para cambiar, crear otra o unirse con un código.
+- **Invitaciones:** en Habitantes → *Invitar personas* se genera un código o link (`/crear-cuenta?codigo=NID-XXXXXX`) para habitantes o **encargados** (mismos permisos que el dueño). Se comparte por WhatsApp o con el botón Compartir.
+- **Recuperar contraseña por email** (`/recuperar`), con Resend.
+- **Eliminar cuenta** desde Mi perfil (lo exigen las tiendas). En las residencias que siguen activas se conserva el historial sin datos personales.
+- **Privacidad y términos** en `/privacidad` y `/terminos` (plantillas: completá los datos en `app/legal.tsx` y revisalas con un profesional).
+
+### App instalable (PWA)
+- Ícono, pantalla completa y accesos directos (`app/manifest.ts`, íconos en `public/icons`, se regeneran con `node scripts/make-icons.mjs`).
+- Botón **Instalar** en Inicio y Mi perfil; en iPhone se explica cómo agregarla a la pantalla de inicio.
+- **Notificaciones push** en el celular aunque la app esté cerrada (Mi perfil → Notificaciones en el celular).
+- Pantalla **sin conexión** (`public/offline.html`) y caché de archivos estáticos (`public/sw.js`).
+
+### Variables de entorno nuevas (opcionales)
+| Variable | Para qué |
+|---|---|
+| `VAPID_PRIVATE_KEY` | Notificaciones push. La clave pública ya está en `lib/push-config.ts`; si generás un par nuevo (`npx web-push generate-vapid-keys`), cambiá también la pública ahí o con `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Emails de recuperación de contraseña. `EMAIL_FROM` es, por ejemplo, `NIDAPP <hola@tudominio.com>`. |
+
+Sin estas variables la app funciona igual: solo quedan desactivados los push y la recuperación por email.
+
 ## Novedades v2
 
 ### Perfil dueño
