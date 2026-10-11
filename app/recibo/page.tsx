@@ -29,9 +29,9 @@ function ReceiptView(){
   <div className="report-actions no-print"><button className="button purple" onClick={()=>window.print()}>🖨️ Imprimir o guardar PDF</button><Link className="button" href="/dashboard?s=alquiler">← Volver</Link></div>
   <article className="receipt-sheet">
    <header className="receipt-head"><img src="/icons/icon-192.png" alt="" className="report-logo"/><div><h1>Recibo de pago</h1><p>{r.home}{r.address?` · ${r.address}`:''}</p></div><div className="receipt-no"><span>N.º</span><b>{r.number}</b></div></header>
-   <p className="receipt-text">Recibí de <b>{r.resident}</b>{r.room?<> (habitación {r.room})</>:null} la suma de <b>pesos {inWords(r.total)}{cents?` con ${cents}/100`:''}</b> ({money(r.total)}) en concepto de alquiler del mes de <b className="cap">{period}</b>.</p>
+   <p className="receipt-text">Recibí de <b>{r.resident}</b>{r.room?<> (habitación {r.room})</>:null} la suma de <b>pesos {inWords(r.total)}{cents?` con ${cents}/100`:''}</b> ({money(r.total)}) en concepto de alquiler del mes de <b>{period}</b>.</p>
    <table className="report-table"><thead><tr><th>Concepto</th><th>Monto</th></tr></thead><tbody>
-    <tr><td>Alquiler <span className="cap">{period}</span>{r.room?` · Habitación ${r.room}`:''}</td><td>{money(r.amount)}</td></tr>
+    <tr><td>Alquiler de {period}{r.room?` · Habitación ${r.room}`:''}</td><td>{money(r.amount)}</td></tr>
     {r.services_detail.length?r.services_detail.map(s=><tr key={s.name}><td>{s.name}</td><td>{money(s.amount)}</td></tr>):r.services_amount>0?<tr><td>Servicios</td><td>{money(r.services_amount)}</td></tr>:null}
     <tr className="receipt-total"><td>Total</td><td>{money(r.total)}</td></tr>
    </tbody></table>
