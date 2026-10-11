@@ -20,7 +20,7 @@ export async function POST(req:Request){try{
   await db.from('login_attempts').insert({username:key});
   const account=await findOrCreateAccount(db,{name,email,password});
   let memberId:string;
-  if(b.mode==='owner'){memberId=(await createHome(db,account.id,{homeName:String(b.homeName||''),ownerName:name,email,rooms:b.rooms,price:b.price})).memberId;}
+  if(b.mode==='owner'){memberId=(await createHome(db,account.id,{homeName:String(b.homeName||''),ownerName:name,email,rooms:b.rooms,price:b.price,address:b.address})).memberId;}
   else{if(!String(b.code||'').trim())throw new HttpError(400,'Escribí el código de invitación.');memberId=(await joinWithInvite(db,account.id,String(b.code),name,email)).memberId;}
   await db.from('accounts').update({last_member_id:memberId}).eq('id',account.id);
   await setSession(memberId,account.id);
