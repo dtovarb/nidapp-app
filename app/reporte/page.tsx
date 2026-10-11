@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { FinanceChart, FinanceTable, type FinanceData } from '../dashboard/finance';
+import { FinanceChart, FinanceTable, MonthDonuts, type FinanceData } from '../dashboard/finance';
 import { money, monthLabel } from '../dashboard/sections';
 
 // Reporte mensual para imprimir o guardar como PDF (desde la ventana de impresión del navegador).
@@ -18,6 +18,7 @@ function Report(){
   <div className="report-actions no-print"><button className="button purple" onClick={()=>window.print()}>🖨️ Imprimir o guardar PDF</button><Link className="button" href="/dashboard?s=finanzas">← Volver</Link></div>
   <header className="report-head"><img src="/icons/icon-192.png" alt="" className="report-logo"/><div><h1>Finanzas · <span className="cap">{monthLabel(data.month)}</span></h1><p>{data.home} · generado el {new Date().toLocaleDateString('es-AR')}</p></div></header>
   <section className="report-kpis"><div><span>Ingresos</span><b>{money(cur.income)}</b><small>Alquileres {money(cur.rent)} · otros {money(cur.other)}</small></div><div><span>Gastos</span><b>{money(cur.expenses)}</b></div><div className="profit"><span>Ganancia</span><b>{money(cur.profit)}</b></div><div><span>Sin cobrar</span><b>{money(cur.pending)}</b></div></section>
+  <section><h2>Reparto del mes</h2><MonthDonuts data={data}/></section>
   <section><h2>Ganancia mensual · últimos 12 meses</h2><FinanceChart series={data.series} printable/><FinanceTable series={data.series}/></section>
   <section><h2>Alquileres cobrados en el mes</h2>{data.detail.collected.length?<table className="report-table"><thead><tr><th>Habitante</th><th>Mes del alquiler</th><th>Pagado el</th><th>Monto</th></tr></thead><tbody>{data.detail.collected.map(c=><tr key={c.id}><td>{c.name}{c.room?` (Hab. ${c.room})`:''}</td><td className="cap">{monthLabel(c.due_date.slice(0,7))}</td><td>{new Date(c.paid_at).toLocaleDateString('es-AR')}</td><td>{money(c.total)}</td></tr>)}</tbody></table>:<p>Sin cobros confirmados.</p>}</section>
   {pending.length>0&&<section><h2>Pendientes del mes</h2><table className="report-table"><thead><tr><th>Habitante</th><th>Vence</th><th>Monto</th></tr></thead><tbody>{pending.map(p=><tr key={p.id}><td>{p.name}</td><td>{new Date(p.due_date+'T12:00:00').toLocaleDateString('es-AR')}</td><td>{money(p.total)}</td></tr>)}</tbody></table></section>}

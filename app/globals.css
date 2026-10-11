@@ -66,6 +66,23 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .table-wrap .table td.cell-actions{display:block;padding-top:8px}
 .table-wrap .row-actions{flex-wrap:wrap}.table-wrap .row-actions .button:first-child{flex:1}
 }
+/* Las tablas pasan a tarjetas según el espacio que tienen (no el ancho de la pantalla):
+   así no se salen del cuadro en notebooks con el menú lateral abierto. */
+.table-wrap{container-type:inline-size}
+@container (max-width:880px){
+.table-wrap{overflow:visible}
+.table-wrap .table{min-width:0;border-spacing:0}
+.table-wrap .table thead{display:none}
+.table-wrap .table,.table-wrap .table tbody{display:block}
+.table-wrap .table tr{display:block;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;box-shadow:3px 3px 0 rgba(40,40,70,.08)}
+.table-wrap .table tr.row-overdue{background:#ffe4e4}
+.table-wrap .table td,.table-wrap .table td:first-child,.table-wrap .table td:last-child,.row-overdue td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;border-radius:0;padding:5px 0;background:transparent;white-space:normal;text-align:right}
+.table-wrap .table td[data-label]::before{content:attr(data-label);font-size:10px;font-weight:900;color:#736e82;text-align:left}
+.table-wrap .table td.cell-head{border-bottom:2px dashed #d8d3e0;padding-bottom:8px;margin-bottom:4px;justify-content:flex-start;text-align:left;font-size:14px}
+.table-wrap .table td.cell-actions{display:block;padding-top:8px}
+.table-wrap .row-actions{flex-wrap:wrap}.table-wrap .row-actions .button:first-child{flex:1}
+}
+
 
 /* v3: tareas en tarjetas + calendario, fotos de avisos, email de gastos */
 .task-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
@@ -225,8 +242,29 @@ img{max-width:100%}
  body{background:#fff !important}
  .no-print{display:none !important}
  .report{padding:0;max-width:none}
- .report .table-wrap .table,.report .table-wrap .table tbody{display:table-row-group}
- .report .fin-table{display:table;width:100%;border-collapse:collapse}.report .fin-table thead{display:table-header-group}.report .fin-table tr{display:table-row;border:0;box-shadow:none;padding:0;margin:0;background:none}
- .report .fin-table td,.report .fin-table th{display:table-cell;border:0;border-bottom:1px solid #ddd;padding:4px;font-size:11px;background:none;white-space:nowrap}
- .report .fin-table td::before{content:none !important}
 }
+
+/* En el reporte la tabla de 12 meses siempre es una tabla (en pantalla y al imprimir). */
+.report .table-wrap{container-type:normal;overflow:visible}
+.report .fin-table{display:table !important;width:100%;min-width:0 !important;border-collapse:collapse;border-spacing:0}
+.report .fin-table thead{display:table-header-group !important}.report .fin-table tbody{display:table-row-group !important}
+.report .fin-table tr{display:table-row !important;border:0 !important;box-shadow:none !important;padding:0 !important;margin:0 !important;background:none !important}
+.report .fin-table td,.report .fin-table th{display:table-cell !important;border:0 !important;border-bottom:1px solid #ddd !important;border-radius:0 !important;padding:5px 4px !important;font-size:11px;background:none !important;text-align:left}
+.report .fin-table td::before{content:none !important}
+.remind-bar.ok{background:#e0f8d8;border-style:solid}
+
+/* v8: torta */
+.chart-switch{display:inline-flex;border:2px solid var(--line);border-radius:10px;overflow:hidden}
+.chart-switch button{border:0;background:#fff;padding:6px 10px;font:inherit;font-weight:900;font-size:12px;cursor:pointer}.chart-switch button.active{background:#eadfff}
+.donuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.donut h4{margin:0 0 8px;font-size:14px}
+.donut-body{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:12px;align-items:center}
+.donut svg{width:100%;height:auto;display:block}
+.donut .slice{stroke:#fffdf5;stroke-width:2;cursor:pointer;transition:opacity .15s}.donut .slice.dim{opacity:.35}
+.donut-center{font-size:22px;font-weight:900;fill:#202036}.donut-sub{font-size:11px;font-weight:800;fill:#52514e}
+.donut-legend{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.donut-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto auto;gap:8px;align-items:center;font-size:12px;padding:3px 4px;border-radius:6px}
+.donut-legend li.on{background:#f3ecff}.donut-label{overflow-wrap:anywhere;font-weight:800}
+@media(max-width:850px){.donuts{grid-template-columns:1fr}}
+@media(max-width:420px){.donut-body{grid-template-columns:1fr}.donut svg{max-width:200px;margin:0 auto}}
+.report .donuts{grid-template-columns:1fr 1fr}.report .donut-body{grid-template-columns:140px 1fr}
