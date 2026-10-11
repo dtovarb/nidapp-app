@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
-// Datos del responsable: completalos antes de publicar en las tiendas.
+// Datos del responsable que aparecen en Privacidad y Términos.
 export const LEGAL = {
-  owner: '[Nombre o razón social del responsable]',
-  contact: '[email de contacto]',
+  owner: 'el equipo de NIDAPP',
+  contact: 'dani.a.t.boscan@gmail.com',
   country: 'Argentina',
-  updated: '10 de octubre de 2026',
+  updated: '11 de octubre de 2026',
 };
 
 export function LegalPage({ title, children }: { title: string; children: React.ReactNode }) {

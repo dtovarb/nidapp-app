@@ -459,3 +459,23 @@ create table if not exists rent_adjustments (
 );
 create index if not exists idx_rent_adjust_home on rent_adjustments(home_id, effective_month);
 alter table rent_adjustments enable row level security;
+
+-- ============================================================
+-- v10: comentarios de la etapa de prueba
+-- ============================================================
+-- Lo que mandan dueños y habitantes desde Inicio → "Contanos qué te parece".
+-- Se lee desde el panel de Supabase (Table editor → feedback).
+create table if not exists feedback (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid references homes(id) on delete set null,
+  user_id uuid references users(id) on delete set null,
+  role text,
+  kind text not null default 'other' check (kind in ('idea','bug','like','other')),
+  rating integer check (rating between 1 and 5),
+  message text not null check (char_length(message) between 3 and 2000),
+  device text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_feedback_created on feedback(created_at desc);
+create index if not exists idx_feedback_user on feedback(user_id, created_at);
+alter table feedback enable row level security;

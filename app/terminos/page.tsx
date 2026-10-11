@@ -16,11 +16,13 @@ export default function TermsPage() {
     </ul>
     <h2>Pagos y montos</h2>
     <p>Los montos de alquiler, servicios y gastos los carga el dueño de cada residencia. NIDAPP no procesa pagos ni es parte de los acuerdos entre dueños y habitantes: solo registra la información.</p>
+    <h2>Etapa de prueba</h2>
+    <p>Por ahora NIDAPP es gratis mientras la probamos con las primeras residencias. Si más adelante sumamos planes pagos, te vamos a avisar con anticipación y nada se cobra sin que lo aceptes.</p>
     <h2>Disponibilidad</h2>
     <p>Hacemos lo posible para que NIDAPP funcione siempre, pero puede haber interrupciones o cambios. Podemos actualizar estos términos y te avisaremos dentro de la app cuando haya cambios importantes.</p>
     <h2>Baja</h2>
     <p>Podés eliminar tu cuenta cuando quieras desde Mi perfil. Podemos suspender cuentas que incumplan estos términos.</p>
     <h2>Contacto</h2>
-    <p>Escribinos a {LEGAL.contact}.</p>
+    <p>Escribinos a <a href={`mailto:${LEGAL.contact}`}>{LEGAL.contact}</a> o mandanos un comentario desde Inicio → Contanos qué te parece.</p>
   </LegalPage>;
 }

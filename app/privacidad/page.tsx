@@ -7,12 +7,13 @@ export const metadata: Metadata = { title: 'Política de privacidad · NIDAPP' }
 export default function PrivacyPage() {
   return <LegalPage title="Privacidad">
     <h2>Quién es responsable</h2>
-    <p>NIDAPP es operada por {LEGAL.owner}, {LEGAL.country}. Para cualquier consulta sobre tus datos escribí a {LEGAL.contact}.</p>
+    <p>NIDAPP es operada por {LEGAL.owner}, {LEGAL.country}. Para cualquier consulta sobre tus datos escribí a <a href={`mailto:${LEGAL.contact}`}>{LEGAL.contact}</a>.</p>
     <h2>Qué datos guardamos</h2>
     <ul>
       <li>Datos de cuenta: nombre, email y contraseña (guardada cifrada, nadie puede leerla).</li>
       <li>Datos que cargás en tu residencia: habitación, teléfono, contacto de emergencia, foto de perfil, avisos, reservas, tareas, invitados, pagos, comprobantes y gastos.</li>
       <li>Datos técnicos mínimos para que funcione: la sesión iniciada y, si las activás, la suscripción a notificaciones del dispositivo.</li>
+      <li>Los comentarios que nos mandás desde la app (Inicio → Contanos qué te parece), junto con tu nombre y tu residencia, para poder responderte y mejorar NIDAPP.</li>
     </ul>
     <h2>Para qué los usamos</h2>
     <p>Solo para que la residencia funcione: mostrar la información a las personas de tu residencia según su rol, enviarte notificaciones y emails de la app (por ejemplo, recuperar tu contraseña). No vendemos tus datos ni los usamos para publicidad.</p>
