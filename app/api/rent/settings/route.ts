@@ -3,13 +3,13 @@ import { currentDue, monthKey, shiftMonth, syncPayments, todayAR } from '@/lib/r
 import { applyDueAdjustments, adjusted } from '@/lib/adjust';
 
 // Configuración del alquiler de la residencia (solo dueño o encargado):
-// día de vencimiento, tipo de ajuste y su frecuencia, y el historial de ajustes.
+// nombre y dirección (salen en los recibos), día de vencimiento, tipo de ajuste y su frecuencia, y el historial de ajustes.
 const owner={ownerOnly:true,ownerMessage:'Solo el dueño puede configurar el alquiler.'};
 const TYPES=['none','percent','ipc','icl','other'];
 
 export async function GET(){try{const {db,homeId}=await homeContext(owner);
   const [{data:home,error},{data:history},{data:rooms}]=await Promise.all([
-    db.from('homes').select('rent_due_day,adjust_type,adjust_every,adjust_percent,next_adjust').eq('id',homeId).single(),
+    db.from('homes').select('name,address,rent_due_day,adjust_type,adjust_every,adjust_percent,next_adjust').eq('id',homeId).single(),
     db.from('rent_adjustments').select('id,effective_month,percent,method,note,status,prices_before,prices_after,created_at,applied_at').eq('home_id',homeId).neq('status','cancelled').order('effective_month',{ascending:false}).limit(24),
     db.from('rooms').select('number,price').eq('home_id',homeId),
   ]);if(error)throw error;
@@ -17,6 +17,8 @@ export async function GET(){try{const {db,homeId}=await homeContext(owner);
 }catch(e){return fail(e)}}
 
 export async function PATCH(req:Request){try{const {db,homeId}=await homeContext(owner);const b=await req.json();const changes:any={};
+  if(b.name!==undefined){const n=String(b.name).trim();if(!n||n.length>80)throw new HttpError(400,'El nombre de la residencia debe tener entre 1 y 80 caracteres.');changes.name=n;}
+  if(b.address!==undefined){const a=String(b.address||'').trim();if(a.length>160)throw new HttpError(400,'La dirección es demasiado larga.');changes.address=a||null;}
   if(b.adjust_type!==undefined){if(!TYPES.includes(b.adjust_type))throw new HttpError(400,'Tipo de ajuste inválido.');changes.adjust_type=b.adjust_type;}
   if(b.adjust_every!==undefined){const n=Number(b.adjust_every);if(!Number.isInteger(n)||n<1||n>24)throw new HttpError(400,'La frecuencia debe ser entre 1 y 24 meses.');changes.adjust_every=n;}
   if(b.adjust_percent!==undefined){const p=b.adjust_percent===null||b.adjust_percent===''?null:Number(b.adjust_percent);if(p!==null&&(!Number.isFinite(p)||p<=-50||p>500))throw new HttpError(400,'Porcentaje inválido.');changes.adjust_percent=p;}

@@ -44,12 +44,12 @@ export async function findOrCreateAccount(db: Db, { name, email, password }: { n
 }
 
 // Crea una residencia nueva con sus habitaciones, tareas y normas base, y al creador como dueño.
-export async function createHome(db: Db, accountId: string, opts: { homeName: string; ownerName: string; email: string | null; rooms?: number; price?: number }) {
+export async function createHome(db: Db, accountId: string, opts: { homeName: string; ownerName: string; email: string | null; rooms?: number; price?: number; address?: string }) {
   const homeName = opts.homeName.trim().slice(0, 60);
   if (!homeName) throw new HttpError(400, 'Poné el nombre de la residencia.');
   const rooms = Math.max(1, Math.min(30, Math.floor(Number(opts.rooms) || 6)));
   const price = Math.max(0, Number(opts.price) || 0);
-  const { data: home, error } = await db.from('homes').insert({ name: homeName, rent_due_day: 5, created_by: accountId }).select('id').single();
+  const { data: home, error } = await db.from('homes').insert({ name: homeName, address: String(opts.address || '').trim().slice(0, 160) || null, rent_due_day: 5, created_by: accountId }).select('id').single();
   if (error) throw error;
   const inserts = await Promise.all([
     db.from('rooms').insert(Array.from({ length: rooms }, (_, i) => ({ home_id: home.id, number: String(i + 1), capacity: 1, price }))),
