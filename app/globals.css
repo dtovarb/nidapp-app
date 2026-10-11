@@ -181,3 +181,4 @@ img{max-width:100%}
  .history-row{grid-template-columns:1fr auto}.history-status{grid-column:1/-1;justify-items:start}
  .table-wrap .table td.cell-actions .row-actions .button{flex:1 1 40%}
 }
+.task-legend .room-chip,.task-card .room-chip{white-space:normal;max-width:100%;overflow-wrap:anywhere}
