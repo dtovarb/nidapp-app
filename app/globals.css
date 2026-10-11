@@ -278,3 +278,7 @@ img{max-width:100%}
 .table td.cell-actions{width:1%;white-space:nowrap}
 @container (max-width:1000px){.pay-actions{justify-content:flex-start}.pay-actions .main-action{flex:1 1 auto}.pay-actions .icon-spacer{display:none}}
 .row-actions .button.icon-only,.table-wrap .table td.cell-actions .row-actions .button.icon-only{flex:0 0 40px}
+/* En modo tarjeta la celda de acciones ocupa todo el ancho (la regla de tabla width:1% no aplica) */
+@container (max-width:1000px){.table-wrap .table td.cell-actions{width:auto !important;white-space:normal}.pay-actions{flex-wrap:nowrap}}
+/* Más ancho en pantallas grandes: la tabla de pagos entra completa sin pasar a tarjetas */
+@media(min-width:1300px){.layout{max-width:1380px}}
