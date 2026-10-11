@@ -411,3 +411,9 @@ end $$;
 
 alter table bathrooms enable row level security;
 alter table bathroom_members enable row level security;
+
+-- ============================================================
+-- v7: registro de cobros anulados (motivo y fecha, se pueden restaurar)
+-- ============================================================
+alter table rent_payments add column if not exists cancel_reason text;
+alter table rent_payments add column if not exists cancelled_at timestamptz;

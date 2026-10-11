@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireDb } from '@/lib/db';
-import { currentDue, syncPayments, todayAR } from '@/lib/rent';
+import { currentDue, remindPending, syncPayments, todayAR } from '@/lib/rent';
 import { ensureCurrent } from '@/lib/tasks';
 import { notify } from '@/lib/notify';
 
@@ -12,9 +12,13 @@ export async function GET(req:Request){
     const db=requireDb(); const today=todayAR();
     const {data:homes,error:homesError}=await db.from('homes').select('id,rent_due_day'); if(homesError)throw homesError;
     let created=0;
+    // Limpieza: las notificaciones leídas de más de 60 días se borran para no acumular espacio.
+    await db.from('notifications').delete().eq('read',true).lt('created_at',new Date(Date.now()-60*864e5).toISOString());
     for(const home of homes||[]){
       await ensureCurrent(db,home.id);
       const dueStr=currentDue(home.rent_due_day); await syncPayments(db,home.id,dueStr);
+      // El día 1 de cada mes se avisa a todos los que tienen el alquiler pendiente.
+      if(today.d===1){created+=await remindPending(db,home.id,{startOfMonth:true});continue;}
       const days=home.rent_due_day-today.d;
       if(days<0 || days>3) continue;
       const {data:payments,error}=await db.from('rent_payments').select('id,resident_id,amount,services_amount').eq('home_id',home.id).eq('due_date',dueStr).eq('paid',false).eq('cancelled',false);

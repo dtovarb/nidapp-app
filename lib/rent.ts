@@ -51,3 +51,23 @@ export async function homeDueDay(db:Db, homeId:string){
   const {data}=await db.from('homes').select('rent_due_day').eq('id',homeId).single();
   return data?.rent_due_day||5;
 }
+
+// Avisa a cada habitante que tiene el alquiler pendiente (del mes o de meses anteriores).
+// No repite el aviso a quien ya lo recibió en las últimas 12 horas. Devuelve a cuántos les llegó.
+export async function remindPending(db:Db, homeId:string, opts:{startOfMonth?:boolean}={}){
+  const due=currentDue(await homeDueDay(db,homeId));await syncPayments(db,homeId,due);
+  const {data:pending,error}=await db.from('rent_payments').select('resident_id,due_date,amount,services_amount,users!inner(active)').eq('home_id',homeId).eq('paid',false).eq('cancelled',false).lte('due_date',due).eq('users.active',true);
+  if(error) throw error;
+  const byResident=new Map<string,{total:number;months:number;oldest:string}>();
+  for(const p of pending||[]){const cur=byResident.get(p.resident_id)||{total:0,months:0,oldest:p.due_date};cur.total+=Number(p.amount)+Number(p.services_amount);cur.months++;if(p.due_date<cur.oldest)cur.oldest=p.due_date;byResident.set(p.resident_id,cur);}
+  if(!byResident.size) return 0;
+  const since=new Date(Date.now()-12*60*60*1000).toISOString();
+  const {data:recent}=await db.from('notifications').select('user_id').in('user_id',[...byResident.keys()]).eq('kind','rent').eq('title','💰 Alquiler pendiente').gte('created_at',since);
+  const skip=new Set((recent||[]).map(r=>r.user_id));
+  const [,m,d]=due.split('-');
+  const rows=[...byResident.entries()].filter(([id])=>!skip.has(id)).map(([user_id,info])=>({home_id:homeId,user_id,title:'💰 Alquiler pendiente',kind:'rent',
+    message:(opts.startOfMonth?'¡Arrancó el mes! ':'')+`Tenés ${info.months>1?`${info.months} pagos pendientes`:'el alquiler pendiente'} por $${info.total.toLocaleString('es-AR')}. Vence el ${Number(d)}/${Number(m)}. Si ya pagaste, avisá desde Alquiler → "Ya pagué".`}));
+  const { notify } = await import('@/lib/notify');
+  await notify(db,rows);
+  return rows.length;
+}
