@@ -434,3 +434,28 @@ create table if not exists incomes (
 create index if not exists idx_incomes_home_date on incomes(home_id, received_on desc);
 create index if not exists idx_rent_home_paid_at on rent_payments(home_id, paid_at);
 alter table incomes enable row level security;
+
+-- ============================================================
+-- v9: ajustes de alquiler por índice
+-- ============================================================
+alter table homes add column if not exists adjust_type text not null default 'none' check (adjust_type in ('none','percent','ipc','icl','other'));
+alter table homes add column if not exists adjust_every integer not null default 3 check (adjust_every between 1 and 24);
+alter table homes add column if not exists adjust_percent numeric(6,2);
+alter table homes add column if not exists next_adjust date;
+
+-- Historial de ajustes: qué porcentaje se aplicó, desde qué mes y los precios antes y después.
+create table if not exists rent_adjustments (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid not null references homes(id) on delete cascade,
+  effective_month text not null check (effective_month ~ '^[0-9]{4}-[0-9]{2}$'),
+  percent numeric(7,3) not null,
+  method text not null default 'other',
+  note text,
+  status text not null default 'scheduled' check (status in ('scheduled','applied','cancelled')),
+  prices_before jsonb,
+  prices_after jsonb,
+  created_at timestamptz not null default now(),
+  applied_at timestamptz
+);
+create index if not exists idx_rent_adjust_home on rent_adjustments(home_id, effective_month);
+alter table rent_adjustments enable row level security;

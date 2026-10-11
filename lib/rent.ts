@@ -52,22 +52,35 @@ export async function homeDueDay(db:Db, homeId:string){
   return data?.rent_due_day||5;
 }
 
-// Avisa a cada habitante que tiene el alquiler pendiente (del mes o de meses anteriores).
+// Mes que se anuncia como "a pagar": hasta el día de vencimiento, el mes en curso; después, el siguiente.
+export function announceDue(rentDueDay:number){
+  const cur=currentDue(rentDueDay);const t=todayAR();if(t.iso<=cur)return cur;
+  const n=shiftMonth(t.y,t.m,1);return `${n.y}-${pad(n.m)}-${pad(rentDueDay)}`;
+}
+
+// Avisa a TODOS los habitantes activos que ya pueden pagar el alquiler del mes (con su monto y vencimiento),
+// salvo a quien ya lo pagó. Si alguien además debe meses anteriores, se lo suma al aviso.
 // No repite el aviso a quien ya lo recibió en las últimas 12 horas. Devuelve a cuántos les llegó.
 export async function remindPending(db:Db, homeId:string, opts:{startOfMonth?:boolean}={}){
-  const due=currentDue(await homeDueDay(db,homeId));await syncPayments(db,homeId,due);
-  const {data:pending,error}=await db.from('rent_payments').select('resident_id,due_date,amount,services_amount,users!inner(active)').eq('home_id',homeId).eq('paid',false).eq('cancelled',false).lte('due_date',due).eq('users.active',true);
-  if(error) throw error;
-  const byResident=new Map<string,{total:number;months:number;oldest:string}>();
-  for(const p of pending||[]){const cur=byResident.get(p.resident_id)||{total:0,months:0,oldest:p.due_date};cur.total+=Number(p.amount)+Number(p.services_amount);cur.months++;if(p.due_date<cur.oldest)cur.oldest=p.due_date;byResident.set(p.resident_id,cur);}
-  if(!byResident.size) return 0;
+  const day=await homeDueDay(db,homeId);const target=announceDue(day);
+  await syncPayments(db,homeId,currentDue(day));if(target!==currentDue(day))await syncPayments(db,homeId,target);
+  const [{data:rows,error},{data:older,error:e2}]=await Promise.all([
+    db.from('rent_payments').select('resident_id,amount,services_amount,paid,users!inner(active)').eq('home_id',homeId).eq('due_date',target).eq('cancelled',false).eq('users.active',true),
+    db.from('rent_payments').select('resident_id,amount,services_amount').eq('home_id',homeId).lt('due_date',target).eq('paid',false).eq('cancelled',false),
+  ]);
+  if(error||e2) throw (error||e2);
+  const debt=new Map<string,number>();for(const p of older||[])debt.set(p.resident_id,(debt.get(p.resident_id)||0)+Number(p.amount)+Number(p.services_amount));
+  const toNotify=(rows||[]).filter(p=>!p.paid);
+  if(!toNotify.length) return 0;
   const since=new Date(Date.now()-12*60*60*1000).toISOString();
-  const {data:recent}=await db.from('notifications').select('user_id').in('user_id',[...byResident.keys()]).eq('kind','rent').eq('title','💰 Alquiler pendiente').gte('created_at',since);
+  const {data:recent}=await db.from('notifications').select('user_id').in('user_id',toNotify.map(p=>p.resident_id)).eq('kind','rent').eq('title','💰 Alquiler del mes').gte('created_at',since);
   const skip=new Set((recent||[]).map(r=>r.user_id));
-  const [,m,d]=due.split('-');
-  const rows=[...byResident.entries()].filter(([id])=>!skip.has(id)).map(([user_id,info])=>({home_id:homeId,user_id,title:'💰 Alquiler pendiente',kind:'rent',
-    message:(opts.startOfMonth?'¡Arrancó el mes! ':'')+`Tenés ${info.months>1?`${info.months} pagos pendientes`:'el alquiler pendiente'} por $${info.total.toLocaleString('es-AR')}. Vence el ${Number(d)}/${Number(m)}. Si ya pagaste, avisá desde Alquiler → "Ya pagué".`}));
+  const [ty,tm,td]=target.split('-').map(Number);
+  const monthName=new Date(ty,tm-1,1).toLocaleDateString('es-AR',{month:'long'});
+  const rowsOut=toNotify.filter(p=>!skip.has(p.resident_id)).map(p=>{const total=Number(p.amount)+Number(p.services_amount);const prev=debt.get(p.resident_id)||0;
+    return {home_id:homeId,user_id:p.resident_id,title:'💰 Alquiler del mes',kind:'rent',
+      message:`${opts.startOfMonth?'¡Arrancó el mes! ':''}Ya podés pagar el alquiler de ${monthName}: $${total.toLocaleString('es-AR')} (alquiler + servicios). Vence el ${td}/${tm}.${prev?` Además tenés $${prev.toLocaleString('es-AR')} pendientes de meses anteriores.`:''} Cuando pagues, avisá desde Alquiler → "Ya pagué".`};});
   const { notify } = await import('@/lib/notify');
-  await notify(db,rows);
-  return rows.length;
+  await notify(db,rowsOut);
+  return rowsOut.length;
 }

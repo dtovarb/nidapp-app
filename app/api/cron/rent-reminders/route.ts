@@ -3,6 +3,7 @@ import { requireDb } from '@/lib/db';
 import { currentDue, remindPending, syncPayments, todayAR } from '@/lib/rent';
 import { ensureCurrent } from '@/lib/tasks';
 import { notify } from '@/lib/notify';
+import { applyDueAdjustments, remindAdjustment } from '@/lib/adjust';
 
 // Corre una vez por día (vercel.json): crea los pagos del mes, las tareas de la semana o del mes, y avisa del vencimiento.
 export async function GET(req:Request){
@@ -16,6 +17,8 @@ export async function GET(req:Request){
     await db.from('notifications').delete().eq('read',true).lt('created_at',new Date(Date.now()-60*864e5).toISOString());
     for(const home of homes||[]){
       await ensureCurrent(db,home.id);
+      // Ajustes de alquiler: aplica los programados para este mes y le recuerda al dueño cuando toca uno.
+      await applyDueAdjustments(db,home.id); await remindAdjustment(db,home.id);
       const dueStr=currentDue(home.rent_due_day); await syncPayments(db,home.id,dueStr);
       // El día 1 de cada mes se avisa a todos los que tienen el alquiler pendiente.
       if(today.d===1){created+=await remindPending(db,home.id,{startOfMonth:true});continue;}
