@@ -69,7 +69,7 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 /* Las tablas pasan a tarjetas según el espacio que tienen (no el ancho de la pantalla):
    así no se salen del cuadro en notebooks con el menú lateral abierto. */
 .table-wrap{container-type:inline-size}
-@container (max-width:880px){
+@container (max-width:1000px){
 .table-wrap{overflow:visible}
 .table-wrap .table{min-width:0;border-spacing:0}
 .table-wrap .table thead{display:none}
@@ -269,3 +269,12 @@ img{max-width:100%}
 @media(max-width:420px){.donut-body{grid-template-columns:1fr}.donut svg{max-width:200px;margin:0 auto}}
 .report .donuts{grid-template-columns:1fr 1fr}.report .donut-body{grid-template-columns:140px 1fr}
 .fin-chart.narrow .tick{font-size:15px}.fin-chart.narrow .direct-label{font-size:16px}
+
+/* Acciones de cada pago: botón principal en una línea + íconos cuadrados alineados */
+.pay-actions{flex-wrap:nowrap;justify-content:flex-end;align-items:center;gap:6px}
+.pay-actions .main-action{white-space:nowrap;overflow-wrap:normal;flex:0 0 auto;min-width:118px}
+.button.icon-only{width:40px;height:40px;padding:0;display:inline-grid;place-items:center;flex:0 0 40px;overflow-wrap:normal;white-space:nowrap}
+.icon-spacer{width:40px;height:40px;flex:0 0 40px}
+.table td.cell-actions{width:1%;white-space:nowrap}
+@container (max-width:1000px){.pay-actions{justify-content:flex-start}.pay-actions .main-action{flex:1 1 auto}.pay-actions .icon-spacer{display:none}}
+.row-actions .button.icon-only,.table-wrap .table td.cell-actions .row-actions .button.icon-only{flex:0 0 40px}
