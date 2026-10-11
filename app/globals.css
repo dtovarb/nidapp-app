@@ -268,3 +268,4 @@ img{max-width:100%}
 @media(max-width:850px){.donuts{grid-template-columns:1fr}}
 @media(max-width:420px){.donut-body{grid-template-columns:1fr}.donut svg{max-width:200px;margin:0 auto}}
 .report .donuts{grid-template-columns:1fr 1fr}.report .donut-body{grid-template-columns:140px 1fr}
+.fin-chart.narrow .tick{font-size:15px}.fin-chart.narrow .direct-label{font-size:16px}

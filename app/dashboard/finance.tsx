@@ -15,8 +15,12 @@ const shortMonth=(k:string)=>{const [y,m]=k.split('-').map(Number);const s=new D
 export const compact=(n:number)=>{const a=Math.abs(n);const sign=n<0?'−':'';if(a>=1e6)return `${sign}${(a/1e6).toLocaleString('es-AR',{maximumFractionDigits:1})} M`;if(a>=1e3)return `${sign}${Math.round(a/1e3)} k`;return `${sign}${Math.round(a)}`;};
 
 // ---------- Gráfico: ingresos y gastos (barras) y ganancia (línea), un solo eje en pesos ----------
-export function FinanceChart({series,printable=false}:{series:Point[];printable?:boolean}){
+export function FinanceChart({series:all,printable=false}:{series:Point[];printable?:boolean}){
  const [hover,setHover]=useState<number|null>(null);const [table,setTable]=useState(false);
+ // En celular se muestran los últimos 6 meses para que se lea bien.
+ const [narrow,setNarrow]=useState(false);
+ useEffect(()=>{if(printable)return;const mq=window.matchMedia('(max-width:600px)');const f=()=>setNarrow(mq.matches);f();mq.addEventListener('change',f);return()=>mq.removeEventListener('change',f)},[printable]);
+ const series=narrow?all.slice(-6):all;
  const W=Math.max(320,series.length*58+56),H=240,L=50,R=10,T=14,B=28;const pw=W-L-R,ph=H-T-B;
  const maxV=Math.max(1,...series.flatMap(p=>[p.income,p.expenses,p.profit]));const minV=Math.min(0,...series.map(p=>p.profit));
  const step=(()=>{const raw=(maxV-minV)/4;const mag=10**Math.floor(Math.log10(raw||1));return Math.ceil(raw/mag/(raw/mag>5?2:1))*mag*(raw/mag>5?2:1);})();
@@ -26,7 +30,7 @@ export function FinanceChart({series,printable=false}:{series:Point[];printable?
  const bar=(cx:number,v:number)=>{const y0=y(0),y1=y(Math.max(0,v));const h=Math.max(0,y0-y1);const r=Math.min(4,h);return `M${cx-bw/2},${y0}V${y1+r}Q${cx-bw/2},${y1} ${cx-bw/2+r},${y1}H${cx+bw/2-r}Q${cx+bw/2},${y1} ${cx+bw/2},${y1+r}V${y0}Z`;};
  const line=series.map((p,i)=>`${i?'L':'M'}${x(i)},${y(p.profit)}`).join('');
  const last=series.length-1;const hp=hover!==null?series[hover]:null;
- return <div className="fin-chart">
+ return <div className={'fin-chart'+(narrow?' narrow':'')}>
   <div className="fin-legend" aria-hidden><span><i className="sw income"/>Ingresos</span><span><i className="sw expense"/>Gastos</span><span><i className="sw profit"/>Ganancia</span>{!printable&&<button className="linklike" onClick={()=>setTable(t=>!t)}>{table?'Ver gráfico':'Ver como tabla'}</button>}</div>
   {table&&!printable?<FinanceTable series={series}/>:<div className="fin-svg-wrap" onMouseLeave={()=>setHover(null)}>
    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Ingresos, gastos y ganancia de ${monthLabel(series[0].month)} a ${monthLabel(series[last].month)}`}>
@@ -40,7 +44,7 @@ export function FinanceChart({series,printable=false}:{series:Point[];printable?
     </g>)}
     <path d={line} className="profit-line"/>
     {series.map((p,i)=><circle key={p.month} cx={x(i)} cy={y(p.profit)} r={hover===i||i===last?5:4} className="profit-dot" pointerEvents="none"/>)}
-    <text x={Math.min(x(last),W-R-4)} y={y(series[last].profit)-10} className="direct-label" textAnchor="end">{compact(series[last].profit)}</text>
+    <text x={x(last)-10} y={Math.max(T+12,y(series[last].profit)-10)} className="direct-label" textAnchor="end">{compact(series[last].profit)}</text>
    </svg>
    {hp&&!printable&&<div className="fin-tip" style={{left:`${(x(hover!)/W)*100}%`}}><b>{monthLabel(hp.month)}</b><div><i className="sw income"/>Ingresos <b>{money(hp.income)}</b></div><div><i className="sw expense"/>Gastos <b>{money(hp.expenses)}</b></div><div><i className="sw profit"/>Ganancia <b>{money(hp.profit)}</b></div>{hp.pending>0&&<div className="mini muted">Sin cobrar: {money(hp.pending)}</div>}</div>}
   </div>}
@@ -57,15 +61,16 @@ export function DonutChart({title,slices,empty}:{title:string;slices:Slice[];emp
  const total=list.reduce((a,s)=>a+s.value,0);
  const R=80,r=50,C=100;let angle=-Math.PI/2;
  const arcs=list.map((s,i)=>{const a0=angle,a1=angle+(s.value/total)*Math.PI*2;angle=a1;const big=a1-a0>Math.PI?1:0;const p=(rad:number,ang:number)=>`${C+rad*Math.cos(ang)},${C+rad*Math.sin(ang)}`;
-  const d=list.length===1?`M${C},${C-R}A${R},${R} 0 1 1 ${C-0.01},${C-R}L${C-0.01},${C-r}A${r},${r} 0 1 0 ${C},${C-r}Z`:`M${p(R,a0)}A${R},${R} 0 ${big} 1 ${p(R,a1)}L${p(r,a1)}A${r},${r} 0 ${big} 0 ${p(r,a0)}Z`;return {d,color:SLICE_COLORS[i],...s};});
+  const d=list.length===1?`M${C-R},${C}A${R},${R} 0 1 1 ${C+R},${C}A${R},${R} 0 1 1 ${C-R},${C}ZM${C-r},${C}A${r},${r} 0 1 0 ${C+r},${C}A${r},${r} 0 1 0 ${C-r},${C}Z`:`M${p(R,a0)}A${R},${R} 0 ${big} 1 ${p(R,a1)}L${p(r,a1)}A${r},${r} 0 ${big} 0 ${p(r,a0)}Z`;return {d,color:SLICE_COLORS[i],...s};});
  const h=hover!==null?list[hover]:null;
+ const pct=(v:number)=>{const x=v/total*100;return x>0&&x<1?'<1%':`${Math.round(x)}%`;};
  return <div className="donut"><h4>{title}</h4>{!total?<div className="empty">{empty}</div>:<div className="donut-body">
   <svg viewBox="0 0 200 200" role="img" aria-label={`${title}: ${list.map(s=>`${s.label} ${Math.round(s.value/total*100)}%`).join(', ')}`} onMouseLeave={()=>setHover(null)}>
-   {arcs.map((a,i)=><path key={a.label} d={a.d} fill={a.color} className={'slice'+(hover!==null&&hover!==i?' dim':'')} onMouseEnter={()=>setHover(i)} onClick={()=>setHover(i)}/>)}
-   <text x={C} y={C-4} textAnchor="middle" className="donut-center">{h?`${Math.round(h.value/total*100)}%`:compact(total)}</text>
+   {arcs.map((a,i)=><path key={a.label} d={a.d} fill={a.color} fillRule="evenodd" className={'slice'+(hover!==null&&hover!==i?' dim':'')} onMouseEnter={()=>setHover(i)} onClick={()=>setHover(i)}/>)}
+   <text x={C} y={C-4} textAnchor="middle" className="donut-center">{h?pct(h.value):compact(total)}</text>
    <text x={C} y={C+14} textAnchor="middle" className="donut-sub">{h?h.label:'total'}</text>
   </svg>
-  <ul className="donut-legend">{list.map((s,i)=><li key={s.label} className={hover===i?'on':''} onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)}><i className="sw" style={{background:SLICE_COLORS[i]}}/><span className="donut-label">{s.label}</span><b>{money(s.value)}</b><span className="mini muted">{Math.round(s.value/total*100)}%</span></li>)}</ul>
+  <ul className="donut-legend">{list.map((s,i)=><li key={s.label} className={hover===i?'on':''} onMouseEnter={()=>setHover(i)} onMouseLeave={()=>setHover(null)}><i className="sw" style={{background:SLICE_COLORS[i]}}/><span className="donut-label">{s.label}</span><b>{money(s.value)}</b><span className="mini muted">{pct(s.value)}</span></li>)}</ul>
  </div>}</div>;
 }
 // Las dos tortas del mes: de dónde vino la plata y a dónde fue.
@@ -111,7 +116,7 @@ export function FinanceSection({api,show,session,defaultEmail}:Props&{defaultEma
     <div className={'card kpi hero-kpi'+(cur.profit<0?' neg':'')}><span className="mini">Ganancia del mes</span><b>{money(cur.profit)}</b>{prev&&prev.month!==cur.month&&<span className="mini">{cur.profit>=prev.profit?'▲':'▼'} {money(Math.abs(cur.profit-prev.profit))} vs. {monthLabel(prev.month).split(' ')[0]}</span>}</div>
     <div className="card kpi"><span className="mini muted">Sin cobrar del mes</span><b>{money(cur.pending)}</b><span className="mini muted">alquiler pendiente o vencido</span></div>
    </div>
-   <div className="card span-12"><h3 className="card-title"><span>{chartType==='barras'?'📈 Ganancia mensual · últimos 12 meses':`🥧 Reparto de ${monthLabel(month)}`}</span><span className="chart-switch" role="tablist"><button role="tab" aria-selected={chartType==='barras'} className={chartType==='barras'?'active':''} onClick={()=>setChartType('barras')}>📊 Barras</button><button role="tab" aria-selected={chartType==='torta'} className={chartType==='torta'?'active':''} onClick={()=>setChartType('torta')}>🥧 Torta</button></span></h3>{chartType==='barras'?<FinanceChart series={data.series}/>:<MonthDonuts data={data}/>}<p className="mini muted">Los alquileres cuentan en el mes en que confirmaste el pago; los otros ingresos y los gastos, en el mes de su fecha. Tocá o pasá el mouse sobre un mes para ver el detalle.</p></div>
+   <div className="card span-12"><h3 className="card-title"><span>{chartType==='barras'?'📈 Ganancia mensual':`🥧 Reparto de ${monthLabel(month)}`}</span><span className="chart-switch" role="tablist"><button role="tab" aria-selected={chartType==='barras'} className={chartType==='barras'?'active':''} onClick={()=>setChartType('barras')}>📊 Barras</button><button role="tab" aria-selected={chartType==='torta'} className={chartType==='torta'?'active':''} onClick={()=>setChartType('torta')}>🥧 Torta</button></span></h3>{chartType==='barras'?<FinanceChart series={data.series}/>:<MonthDonuts data={data}/>}<p className="mini muted">Los alquileres cuentan en el mes en que confirmaste el pago; los otros ingresos y los gastos, en el mes de su fecha. Tocá o pasá el mouse sobre un mes para ver el detalle.</p></div>
    <div className="card span-12"><h3 className="card-title">📤 Compartir el resumen de {monthLabel(month)}</h3><div className="share-row"><a className="button purple" href={`/reporte?mes=${month}`} target="_blank" rel="noreferrer">🖨️ Imprimir o guardar PDF</a><div className="field"><label htmlFor="fin-mail">ENVIAR POR EMAIL A</label><input id="fin-mail" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="correo@ejemplo.com"/></div><button className="button blue" onClick={sendEmail}>📧 Enviar resumen</button></div><p className="mini muted">El PDF se genera desde el reporte: en la ventana de impresión elegí "Guardar como PDF". El email abre tu app de correo con el resumen; si querés, adjuntá el PDF.</p></div>
   </>}
   {view==='pagos'&&data&&<PaymentsLedger data={data} api={api} show={show} reload={load}/>}
