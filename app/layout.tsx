@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import PwaRegister from './pwa-register';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://nidapp-app.vercel.app'),
   title: 'NIDAPP · Tu residencia, organizada',
   description: 'Administrá tu residencia: alquileres, tareas, avisos, lavarropas, invitados y gastos.',
   applicationName: 'NIDAPP',
