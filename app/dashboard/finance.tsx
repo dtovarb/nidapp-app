@@ -101,7 +101,8 @@ export function FinanceSection({api,show,session,defaultEmail}:Props&{defaultEma
  const [view,setView]=useState<'resumen'|'pagos'|'ingresos'|'gastos'>('resumen');
  const [month,setMonth]=useState(thisMonth());const [data,setData]=useState<FinanceData|null>(null);const [chartType,setChartType]=useState<'barras'|'torta'>('barras');const [email,setEmail]=useState(defaultEmail||'');
  async function load(){try{setData(await api(`/api/finance?month=${month}&months=12`))}catch(e){show(errMsg(e))}}
- useEffect(()=>{load()},[month]);useEffect(()=>{if(!email&&defaultEmail)setEmail(defaultEmail)},[defaultEmail]);
+ // Se vuelve a cargar al cambiar de mes y al volver de otra pestaña (por ejemplo, después de cargar un gasto o un ingreso).
+ useEffect(()=>{if(view!=='gastos')load()},[month,view]);useEffect(()=>{if(!email&&defaultEmail)setEmail(defaultEmail)},[defaultEmail]);
  const cur=data?.series.find(s=>s.month===month);const prev=data?.series[data.series.length-2];
  function sendEmail(){if(!data)return;if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return show('Escribí un email válido.');const body=summaryText(data);const subject=`Finanzas de ${monthLabel(month)} · ${data.home}`;let url=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;if(url.length>1900){navigator.clipboard?.writeText(body).catch(()=>{});show('El resumen es largo: lo copié para que lo pegues.');url=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}`;}window.location.href=url;}
  const tabs:[typeof view,string][]= [['resumen','📊 Resumen'],['pagos','💵 Pagos'],['ingresos','➕ Ingresos'],['gastos','🧾 Gastos']];
