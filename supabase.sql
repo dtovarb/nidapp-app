@@ -417,3 +417,20 @@ alter table bathroom_members enable row level security;
 -- ============================================================
 alter table rent_payments add column if not exists cancel_reason text;
 alter table rent_payments add column if not exists cancelled_at timestamptz;
+
+-- ============================================================
+-- v8: finanzas (otros ingresos además del alquiler)
+-- ============================================================
+create table if not exists incomes (
+  id uuid primary key default gen_random_uuid(),
+  home_id uuid not null references homes(id) on delete cascade,
+  concept text not null,
+  category text not null default 'Otros',
+  amount numeric(12,2) not null check (amount >= 0),
+  received_on date not null default current_date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_incomes_home_date on incomes(home_id, received_on desc);
+create index if not exists idx_rent_home_paid_at on rent_payments(home_id, paid_at);
+alter table incomes enable row level security;

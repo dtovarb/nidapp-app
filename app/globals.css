@@ -66,6 +66,23 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .table-wrap .table td.cell-actions{display:block;padding-top:8px}
 .table-wrap .row-actions{flex-wrap:wrap}.table-wrap .row-actions .button:first-child{flex:1}
 }
+/* Las tablas pasan a tarjetas según el espacio que tienen (no el ancho de la pantalla):
+   así no se salen del cuadro en notebooks con el menú lateral abierto. */
+.table-wrap{container-type:inline-size}
+@container (max-width:880px){
+.table-wrap{overflow:visible}
+.table-wrap .table{min-width:0;border-spacing:0}
+.table-wrap .table thead{display:none}
+.table-wrap .table,.table-wrap .table tbody{display:block}
+.table-wrap .table tr{display:block;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;box-shadow:3px 3px 0 rgba(40,40,70,.08)}
+.table-wrap .table tr.row-overdue{background:#ffe4e4}
+.table-wrap .table td,.table-wrap .table td:first-child,.table-wrap .table td:last-child,.row-overdue td{display:flex;justify-content:space-between;align-items:center;gap:10px;border:0;border-radius:0;padding:5px 0;background:transparent;white-space:normal;text-align:right}
+.table-wrap .table td[data-label]::before{content:attr(data-label);font-size:10px;font-weight:900;color:#736e82;text-align:left}
+.table-wrap .table td.cell-head{border-bottom:2px dashed #d8d3e0;padding-bottom:8px;margin-bottom:4px;justify-content:flex-start;text-align:left;font-size:14px}
+.table-wrap .table td.cell-actions{display:block;padding-top:8px}
+.table-wrap .row-actions{flex-wrap:wrap}.table-wrap .row-actions .button:first-child{flex:1}
+}
+
 
 /* v3: tareas en tarjetas + calendario, fotos de avisos, email de gastos */
 .task-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
@@ -182,3 +199,73 @@ img{max-width:100%}
  .table-wrap .table td.cell-actions .row-actions .button{flex:1 1 40%}
 }
 .task-legend .room-chip,.task-card .room-chip{white-space:normal;max-width:100%;overflow-wrap:anywhere}
+
+/* v8: finanzas */
+.fin-chart{--fin-income:#2a78d6;--fin-expense:#eb6834;--fin-profit:#1baf7a;--fin-grid:#e7e2d6;--fin-ink:#52514e;position:relative}
+.fin-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.fin-tabs{display:flex;gap:6px;flex-wrap:wrap}.fin-tabs button{border:3px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font:inherit;font-weight:900;font-size:13px;cursor:pointer}.fin-tabs button.active{background:#eadfff}
+.fin-month{display:flex;align-items:center;gap:8px}.cap{text-transform:capitalize}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{display:grid;gap:4px}.kpi b{font-size:24px;font-weight:900}.hero-kpi{background:linear-gradient(135deg,#a56de7,#7e5bcc);color:#fff}.hero-kpi.neg{background:linear-gradient(135deg,#e34948,#b8302f)}
+.fin-legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:12px;font-weight:900;margin-bottom:6px}.fin-legend span,.fin-tip div{display:flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px}.sw.income{background:var(--fin-income)}.sw.expense{background:var(--fin-expense)}.sw.profit{background:var(--fin-profit);border-radius:50%}
+.fin-svg-wrap{position:relative;width:100%}.fin-svg-wrap svg{width:100%;height:auto;display:block}
+.fin-chart .grid{stroke:var(--fin-grid);stroke-width:1}.fin-chart .axis0{stroke:#b9b3a6;stroke-width:1}
+.fin-chart .tick{font-size:11px;fill:var(--fin-ink);font-family:inherit;font-weight:700}
+.fin-chart .bar.income{fill:var(--fin-income)}.fin-chart .bar.expense{fill:var(--fin-expense)}
+.fin-chart .profit-line{fill:none;stroke:var(--fin-profit);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.fin-chart .profit-dot{fill:var(--fin-profit);stroke:#fffdf5;stroke-width:2}
+.fin-chart .direct-label{font-size:12px;font-weight:900;fill:#202036}
+.fin-chart .hover-band{fill:#eee2ff;opacity:.7}
+.fin-tip{position:absolute;top:8px;transform:translateX(-50%);background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;display:grid;gap:3px;box-shadow:4px 4px 0 rgba(40,40,70,.15);pointer-events:none;min-width:170px;z-index:5}
+.fin-tip b:first-child{text-transform:capitalize}.fin-tip div b{margin-left:auto}
+.neg{color:#c62828}
+.share-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}.share-row .field{flex:1 1 200px}
+.fin-totals{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin:8px 0}
+.fin-link{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#f3ecff}
+@media(max-width:850px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.kpi b{font-size:19px}.fin-tabs button{flex:1 1 40%;padding:8px 6px;font-size:12px}.fin-month{width:100%;justify-content:space-between}.share-row>*{width:100%}.fin-tip{min-width:150px}}
+
+/* Reporte imprimible */
+.report{max-width:900px;margin:0 auto;padding:24px 16px 48px;background:#fff;color:#202036}
+.report-actions{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.report-head{display:flex;gap:14px;align-items:center;border-bottom:3px solid #202036;padding-bottom:12px;margin-bottom:16px}.report-logo{width:56px;height:56px;border-radius:12px;border:2px solid #202036}
+.report-head h1{margin:0;font-size:22px}.report-head p{margin:4px 0 0;color:#5e5a72;font-weight:700}
+.report-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}.report-kpis div{border:2px solid #202036;border-radius:10px;padding:10px;display:grid;gap:2px}.report-kpis span{font-size:12px;font-weight:800;color:#5e5a72}.report-kpis b{font-size:20px}.report-kpis small{font-size:11px;color:#5e5a72}.report-kpis .profit{background:#f3ecff}
+.report section{margin-bottom:18px;break-inside:avoid}.report h2{font-size:15px;margin:0 0 8px}
+.report-table{width:100%;border-collapse:collapse;font-size:12px}.report-table th,.report-table td{border-bottom:1px solid #ddd;padding:6px 4px;text-align:left}.report-table th{color:#5e5a72;font-size:11px}.report-table td:last-child,.report-table th:last-child{text-align:right}
+.report .fin-table{min-width:0}.report .table-wrap{overflow:visible}
+.report-foot{font-size:11px;color:#77738a;border-top:1px solid #ddd;padding-top:8px}
+@media(max-width:600px){.report-kpis{grid-template-columns:1fr 1fr}}
+@media print{
+ @page{size:A4;margin:14mm}
+ body{background:#fff !important}
+ .no-print{display:none !important}
+ .report{padding:0;max-width:none}
+}
+
+/* En el reporte la tabla de 12 meses siempre es una tabla (en pantalla y al imprimir). */
+.report .table-wrap{container-type:normal;overflow:visible}
+.report .fin-table{display:table !important;width:100%;min-width:0 !important;border-collapse:collapse;border-spacing:0}
+.report .fin-table thead{display:table-header-group !important}.report .fin-table tbody{display:table-row-group !important}
+.report .fin-table tr{display:table-row !important;border:0 !important;box-shadow:none !important;padding:0 !important;margin:0 !important;background:none !important}
+.report .fin-table td,.report .fin-table th{display:table-cell !important;border:0 !important;border-bottom:1px solid #ddd !important;border-radius:0 !important;padding:5px 4px !important;font-size:11px;background:none !important;text-align:left}
+.report .fin-table td::before{content:none !important}
+.remind-bar.ok{background:#e0f8d8;border-style:solid}
+
+/* v8: torta */
+.chart-switch{display:inline-flex;border:2px solid var(--line);border-radius:10px;overflow:hidden}
+.chart-switch button{border:0;background:#fff;padding:6px 10px;font:inherit;font-weight:900;font-size:12px;cursor:pointer}.chart-switch button.active{background:#eadfff}
+.donuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.donut h4{margin:0 0 8px;font-size:14px}
+.donut-body{display:grid;grid-template-columns:minmax(120px,170px) 1fr;gap:12px;align-items:center}
+.donut svg{width:100%;height:auto;display:block}
+.donut .slice{stroke:#fffdf5;stroke-width:2;cursor:pointer;transition:opacity .15s}.donut .slice.dim{opacity:.35}
+.donut-center{font-size:22px;font-weight:900;fill:#202036}.donut-sub{font-size:11px;font-weight:800;fill:#52514e}
+.donut-legend{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.donut-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto auto;gap:8px;align-items:center;font-size:12px;padding:3px 4px;border-radius:6px}
+.donut-legend li.on{background:#f3ecff}.donut-label{overflow-wrap:anywhere;font-weight:800}
+@media(max-width:850px){.donuts{grid-template-columns:1fr}}
+@media(max-width:420px){.donut-body{grid-template-columns:1fr}.donut svg{max-width:200px;margin:0 auto}}
+.report .donuts{grid-template-columns:1fr 1fr}.report .donut-body{grid-template-columns:140px 1fr}
+.fin-chart.narrow .tick{font-size:15px}.fin-chart.narrow .direct-label{font-size:16px}
