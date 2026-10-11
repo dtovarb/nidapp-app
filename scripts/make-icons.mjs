@@ -34,12 +34,13 @@ function svg(size, padding, bg) {
 
 mkdirSync('public/icons', { recursive: true });
 const out = [
-  ['public/icons/icon-192.png', 192, 16, { fill: '#fff8e8', rx: 36 }],
-  ['public/icons/icon-512.png', 512, 40, { fill: '#fff8e8', rx: 96 }],
+  // Fondo violeta en todas las versiones (es el ícono que se ve al instalar la app).
+  ['public/icons/icon-192.png', 192, 30, { fill: '#a56de7', rx: 40 }],
+  ['public/icons/icon-512.png', 512, 80, { fill: '#a56de7', rx: 104 }],
   // Maskable: el sistema recorta en círculo o gota, por eso lleva más margen y fondo completo.
   ['public/icons/maskable-512.png', 512, 104, { fill: '#a56de7', rx: 0 }],
-  ['public/icons/apple-touch-icon.png', 180, 18, { fill: '#fff8e8', rx: 0 }],
-  ['app/icon.png', 64, 4, { fill: '#fff8e8', rx: 12 }],
+  ['public/icons/apple-touch-icon.png', 180, 28, { fill: '#a56de7', rx: 0 }],
+  ['app/icon.png', 64, 6, { fill: '#a56de7', rx: 14 }],
 ];
 for (const [file, size, pad, bg] of out) await sharp(svg(size, pad, bg)).png().toFile(file);
 console.log('Íconos generados');

@@ -1,5 +1,5 @@
 // Service worker de NIDAPP: pantalla sin conexión, caché de archivos estáticos y notificaciones push.
-const CACHE = 'nidapp-v1';
+const CACHE = 'nidapp-v2';
 const OFFLINE = '/offline.html';
 
 self.addEventListener('install', (event) => {

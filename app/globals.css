@@ -121,3 +121,64 @@ button.status{cursor:pointer;font:inherit;font-size:10px;font-weight:900}
 .people-checks{display:flex;flex-wrap:wrap;gap:6px}
 .person-check{display:flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900;cursor:pointer;background:#fff}
 .person-check.on{background:#d6efff}.person-check input{margin:0}
+
+/* v7: logo de la app */
+img.brand-mark{width:44px;height:44px;border:3px solid var(--line);border-radius:10px;background:#a56de7;padding:0;object-fit:cover;flex-shrink:0;image-rendering:pixelated}
+.app-logo{width:76px;height:76px;border:3px solid var(--line);border-radius:18px;box-shadow:4px 4px 0 rgba(40,40,70,.15);image-rendering:pixelated;display:block;margin:0 auto 8px}
+.app-logo.small{width:52px;height:52px;border-radius:12px;margin:10px 0 0}
+
+/* v7: alquiler (aviso a todos y registro de pagos) */
+.remind-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff4bf;border:2px dashed var(--line);border-radius:12px;padding:10px;margin-bottom:10px}
+.log-legend{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.log-row{border:2px solid var(--line);border-radius:12px;background:#fff;padding:10px;margin-bottom:8px;display:grid;gap:8px}
+.log-row.inactive{opacity:.6}
+.log-person{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.log-person .tag{margin-top:0}
+.log-months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.log-cell{border:2px solid var(--line);border-radius:8px;font-size:11px;font-weight:900;background:#fff;padding:3px 6px}
+.log-cell.paid{background:#ddf6d7}.log-cell.pending{background:#fff4bf}.log-cell.reported{background:#d6efff}.log-cell.overdue{background:#ffe4e4}.log-cell.cancelled{background:#eee;color:#666;text-decoration:line-through}.log-cell.none{background:transparent;border-style:dashed;color:#999}
+details.log-cell{padding:0;position:relative}
+details.log-cell summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px;text-decoration:none}
+details.log-cell summary::-webkit-details-marker{display:none}
+.log-month{font-size:10px;text-transform:capitalize}
+.log-detail{position:absolute;z-index:20;top:100%;left:50%;transform:translateX(-50%);width:200px;max-width:80vw;background:var(--paper);border:2px solid var(--line);border-radius:10px;padding:8px;box-shadow:4px 4px 0 rgba(40,40,70,.15);display:grid;gap:4px;font-weight:700;text-decoration:none;color:var(--ink);text-transform:none}
+.log-detail a{color:#7655b6;text-decoration:underline}
+.cancelled-list{margin-top:12px}.cancelled-list h4{margin:0 0 8px}
+.history-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#fff}
+.history-month{display:grid}.history-month b{text-transform:capitalize}.history-amount{font-weight:900}
+.history-status{display:grid;justify-items:end;gap:2px}
+
+/* v7: notificaciones con borrar */
+.notice-open{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.icon-btn{border:2px solid var(--line);background:#fff;border-radius:10px;width:38px;height:38px;display:grid;place-items:center;cursor:pointer;flex-shrink:0;font-size:16px}
+
+/* v7: responsive general (nada se sale de la pantalla y los botones se adaptan) */
+.shell{overflow-x:clip}
+.topbar{gap:8px}.brand{min-width:0;flex-shrink:1}.brand>div{min-width:0}.brand-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-switch{min-width:0;flex-shrink:1}.user-chip{flex-shrink:0;min-width:0}
+.logout{display:flex;align-items:center;gap:6px}
+.button{max-width:100%;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
+.card,.notice-main,.field,.form-row>*,.form>*{min-width:0}
+.field input,.field select,.field textarea{min-width:0;max-width:100%}
+.card-title{flex-wrap:wrap}.card-title>span{min-width:0}
+.notice{flex-wrap:wrap}.notice-main{flex:1 1 160px;overflow-wrap:anywhere}
+.hero>div{min-width:0}.hero h1{overflow-wrap:anywhere}
+.calendar-day,.calendar-event{min-width:0}.calendar-event{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.week-item{flex-wrap:wrap}.task-card,.task-month{min-width:0}
+img{max-width:100%}
+@media(max-width:520px){
+ .topbar{padding:8px}
+ .brand-title,.brand-sub,.user-chip .mini{display:none}
+ img.brand-mark{width:38px;height:38px}
+ .logout{padding:7px 9px}.logout .logout-text{display:none}
+ .home-btn{max-width:none}.home-switch{flex:1}
+ .hero{padding:14px}.hero h1{font-size:17px;line-height:1.3}
+ .button{padding:9px 11px;font-size:13px}
+ .notice>.button,.notice>.row-actions{flex:1 1 auto}
+ .row-actions{flex-wrap:wrap}.row-actions .button{flex:1 1 auto}
+ .card-title{font-size:13px}
+ .remind-bar .button{width:100%}
+ .log-months{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .history-row{grid-template-columns:1fr auto}.history-status{grid-column:1/-1;justify-items:start}
+ .table-wrap .table td.cell-actions .row-actions .button{flex:1 1 40%}
+}
+.task-legend .room-chip,.task-card .room-chip{white-space:normal;max-width:100%;overflow-wrap:anywhere}

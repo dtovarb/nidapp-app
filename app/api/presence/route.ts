@@ -1,4 +1,0 @@
-import { homeContext, fail, json, HttpError } from '@/lib/api';
-const locations=['Cocina','Living','Baño','Lavadero','Habitación','Patio','Fuera de casa'];
-export async function GET(){try{const {db,homeId}=await homeContext();const {data,error}=await db.from('users').select('id,name,room,presence_location,presence_updated_at,active').eq('home_id',homeId).eq('active',true).eq('role','resident').order('room').order('name');if(error)throw error;return json({items:data||[],locations});}catch(e){return fail(e)}}
-export async function PATCH(req:Request){try{const {s,db}=await homeContext();const b=await req.json();if(!locations.includes(b.location))throw new HttpError(400,'Lugar inválido.');const {error}=await db.from('users').update({presence_location:b.location,presence_updated_at:new Date().toISOString()}).eq('id',s.id);if(error)throw error;return json({ok:true});}catch(e){return fail(e)}}
